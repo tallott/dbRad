@@ -3,14 +3,16 @@
     [ApplicationTableId]   INT            NULL,
     [ColumnName]           VARCHAR (128)  NULL,
     [ColumnLable]          VARCHAR (128)  NULL,
-    [RowSource]            VARCHAR (8000) NULL,
+    [RowSource]            VARCHAR (4000) NULL,
     [WindowControlTypeId]  INT            NULL,
     [WindowControlEnabled] BIT            NULL,
     [WindowLayoutOrder]    INT            NULL,
-    CONSTRAINT [PK_ApplicationColumn] PRIMARY KEY CLUSTERED ([ApplicationColumnId] ASC),
+    CONSTRAINT [PK__Applicat__4A666BFB8891CDBF] PRIMARY KEY CLUSTERED ([ApplicationColumnId] ASC),
     CONSTRAINT [FK_ApplicationColumn_ApplicationTable] FOREIGN KEY ([ApplicationTableId]) REFERENCES [dbo].[ApplicationTable] ([ApplicationTableId]),
     CONSTRAINT [FK_ApplicationColumn_WindowControlType] FOREIGN KEY ([WindowControlTypeId]) REFERENCES [dbo].[WindowControlType] ([WindowControlTypeId])
 );
+
+
 
 
 

@@ -6,8 +6,6 @@ using System.Windows.Input;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
-//using System.Collections.Specialized;
-//using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Data;
