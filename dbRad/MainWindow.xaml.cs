@@ -86,7 +86,7 @@ namespace dbRad
 
         }
 
-        private void dbGetDataGridRows(Window winNew, String tabId, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues)
+        private void dbGetDataGridRows(Window winNew, String tabId, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch)
         //Fills the form data grid with the filter applied
         {
             Console.WriteLine("dbGetDataGridRows");
@@ -143,7 +143,7 @@ namespace dbRad
             }
 
             sqlTxt = sqlTxt + " WHERE " + fltTxt;
-            sqlTxt = sqlTxt + " ORDER BY 1 OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY";
+            sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
             Console.WriteLine(sqlTxt);
 
             try
@@ -419,7 +419,7 @@ namespace dbRad
 
         }
 
-        private void dbCreateRecord(Window winNew, String tabId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, int seletedFilter, Dictionary<string, string> controlValues)
+        private void dbCreateRecord(Window winNew, String tabId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch)
         //Creates a new record in the db
         {
             try
@@ -489,7 +489,7 @@ namespace dbRad
 
                 appDbCon.Close();
 
-                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues);
+                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
 
             }
             catch (Exception ex)
@@ -498,7 +498,7 @@ namespace dbRad
             }
         }
 
-        private void dbUpdateRecord(Window winNew, String tabId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, int seletedFilter, Dictionary<string, string> controlValues)
+        private void dbUpdateRecord(Window winNew, String tabId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch)
         //updates the database with values in the data edit fields
         {
             SqlConnection appDbCon = new SqlConnection(Properties.Settings.Default.appDbCon);
@@ -605,7 +605,7 @@ namespace dbRad
 
                         appDbCon.Close();
 
-                        dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues);
+                        dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
 
                         TextBox tabIdCol = (TextBox)editStkPnl.FindName(tabKey);
                         id = tabIdCol.Text;
@@ -626,7 +626,7 @@ namespace dbRad
             };
         }
 
-        private void dbDeleteRecord(Window winNew, String tabId, StackPanel fltStkPnl, DataGrid winDg,  StackPanel editStkPnl, int seletedFilter, Dictionary<string, string> controlValues)
+        private void dbDeleteRecord(Window winNew, String tabId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch)
         //deletes the selected row from the database
         {
             SqlConnection appDbCon = new SqlConnection(Properties.Settings.Default.appDbCon);
@@ -653,7 +653,7 @@ namespace dbRad
 
                 winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
 
-                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues);
+                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
 
             }
             catch (Exception ex)
@@ -785,7 +785,6 @@ namespace dbRad
 
         }
 
-        public string SomeText { get; set; }
 
         private void winConstruct(string tabId)
         //Builds the window for the selected table 
@@ -922,8 +921,10 @@ namespace dbRad
             btnNextPage.Style = (Style)FindResource("winButtonStyle");
 
             TextBox tbOffset = new TextBox();
+            tbOffset.Text = "0";
 
             TextBox tbFetch = new TextBox();
+            tbFetch.Text = "25";
 
 
 
@@ -1078,7 +1079,7 @@ namespace dbRad
                                     winGetControlValue(cb, controlValues);
                                     if (winNew.Resources["winMode"].ToString() != "EDIT")
                                     {
-                                        dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues);
+                                        dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
                                     }
 
                                 }
@@ -1128,7 +1129,7 @@ namespace dbRad
                 ComboBox clicked = (ComboBox)s;
                 seletedFilter = (Int32)clicked.SelectedValue;
                 winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
-                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues);
+                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
                 winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
             }
             );
@@ -1142,12 +1143,12 @@ namespace dbRad
                 switch (winNew.Resources["winMode"].ToString())
                 {
                     case "NEW":
-                        dbCreateRecord(winNew, tabId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues);
+                        dbCreateRecord(winNew, tabId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
                         winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
                         winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                         break;
                     case "EDIT":
-                        dbUpdateRecord(winNew, tabId, winDg, editStkPnl, fltStkPnl, seletedFilter, controlValues);
+                        dbUpdateRecord(winNew, tabId, winDg, editStkPnl, fltStkPnl, seletedFilter, controlValues, tbOffset, tbFetch);
                         winSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                         break;
                 }
@@ -1164,7 +1165,7 @@ namespace dbRad
             {
                 Console.WriteLine("");
                 Console.WriteLine("Delete Button Clicked");
-                dbDeleteRecord(winNew, tabId, fltStkPnl, winDg, editStkPnl, seletedFilter, controlValues);
+                dbDeleteRecord(winNew, tabId, fltStkPnl, winDg, editStkPnl, seletedFilter, controlValues, tbOffset, tbFetch);
                 winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
             });
             btnExit.Click += new RoutedEventHandler(winClose);
@@ -1177,10 +1178,26 @@ namespace dbRad
                 winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
                 winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                 winClearControlDictionaryValues(controlValues);
-                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues);
+                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
 
             });
 
+
+            tbOffset.TextChanged += new TextChangedEventHandler((s, e) =>
+            {
+                dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch);
+            });
+
+            btnNextPage.Click += new RoutedEventHandler((s, e) =>
+            {
+                
+                tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) + Convert.ToInt32(tbFetch.Text));
+            });
+
+            btnPrevPage.Click += new RoutedEventHandler((s, e) =>
+            {if (Convert.ToInt32(tbOffset.Text) >= Convert.ToInt32(tbFetch.Text))
+                tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) - Convert.ToInt32(tbFetch.Text));
+            });
 
             //Add Rows and Columns to the Grid
             mainGrid.ColumnDefinitions.Add(col1);
@@ -1238,7 +1255,7 @@ namespace dbRad
             winNew.SizeToContent = SizeToContent.WidthAndHeight;
             winNew.Show();
 
-            dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, 0, controlValues);
+            dbGetDataGridRows(winNew, tabId, fltStkPnl, winDg, 0, controlValues, tbOffset, tbFetch);
             winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
         }
     }
