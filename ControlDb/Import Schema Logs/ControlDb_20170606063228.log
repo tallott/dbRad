@@ -1,0 +1,77 @@
+7/06/2017 6:32:28 a.m.	This log contains information about the import schema operation into project 'ControlDb' on computer 'CNWL-4VYCGC2' by user 'tallott'.
+7/06/2017 6:32:28 a.m.	Import of database schema has started.
+7/06/2017 6:32:33 a.m.	Gathering database options
+7/06/2017 6:32:33 a.m.	Gathering users
+7/06/2017 6:32:33 a.m.	Gathering roles
+7/06/2017 6:32:33 a.m.	Gathering application roles
+7/06/2017 6:32:33 a.m.	Gathering role memberships
+7/06/2017 6:32:33 a.m.	Gathering filegroups
+7/06/2017 6:32:33 a.m.	Gathering full-text catalogs
+7/06/2017 6:32:33 a.m.	Gathering assemblies
+7/06/2017 6:32:33 a.m.	Gathering certificates
+7/06/2017 6:32:33 a.m.	Gathering asymmetric keys
+7/06/2017 6:32:33 a.m.	Gathering symmetric keys
+7/06/2017 6:32:33 a.m.	Gathering encrypted symmetric keys
+7/06/2017 6:32:33 a.m.	Gathering schemas
+7/06/2017 6:32:33 a.m.	Gathering XML schema collections
+7/06/2017 6:32:33 a.m.	Gathering user-defined data types
+7/06/2017 6:32:33 a.m.	Gathering user-defined types
+7/06/2017 6:32:33 a.m.	Gathering table types
+7/06/2017 6:32:33 a.m.	Gathering unique keys for table types
+7/06/2017 6:32:33 a.m.	Gathering primary keys for table types
+7/06/2017 6:32:33 a.m.	Gathering indexes for table types
+7/06/2017 6:32:33 a.m.	Gathering check constraints for table types
+7/06/2017 6:32:33 a.m.	Gathering default constraints for table types
+7/06/2017 6:32:33 a.m.	Gathering partition functions
+7/06/2017 6:32:33 a.m.	Gathering partition schemes
+7/06/2017 6:32:33 a.m.	Gathering functions
+7/06/2017 6:32:33 a.m.	Gathering encrypted functions
+7/06/2017 6:32:33 a.m.	Gathering aggregates
+7/06/2017 6:32:33 a.m.	Gathering procedures
+7/06/2017 6:32:33 a.m.	Gathering encrypted procedures
+7/06/2017 6:32:33 a.m.	Gathering tables
+7/06/2017 6:32:33 a.m.	Gathering primary keys
+7/06/2017 6:32:33 a.m.	Gathering unique constraints
+7/06/2017 6:32:33 a.m.	Gathering foreign keys
+7/06/2017 6:32:33 a.m.	Gathering default constraints
+7/06/2017 6:32:33 a.m.	Gathering check constraints
+7/06/2017 6:32:33 a.m.	Gathering views
+7/06/2017 6:32:33 a.m.	Gathering encrypted views
+7/06/2017 6:32:33 a.m.	Gathering indexes
+7/06/2017 6:32:33 a.m.	Gathering statistics
+7/06/2017 6:32:33 a.m.	Gathering full-text index stoplists
+7/06/2017 6:32:33 a.m.	Gathering search property lists
+7/06/2017 6:32:33 a.m.	Gathering search properties
+7/06/2017 6:32:33 a.m.	Gathering full-text indexes
+7/06/2017 6:32:33 a.m.	Gathering column store indexes
+7/06/2017 6:32:33 a.m.	Gathering spatial indexes
+7/06/2017 6:32:33 a.m.	Gathering XML indexes
+7/06/2017 6:32:33 a.m.	Gathering Selective XML indexes
+7/06/2017 6:32:33 a.m.	Gathering encrypted triggers
+7/06/2017 6:32:33 a.m.	Gathering triggers
+7/06/2017 6:32:33 a.m.	Gathering encrypted and clr ddl triggers
+7/06/2017 6:32:33 a.m.	Gathering ddl triggers
+7/06/2017 6:32:33 a.m.	Gathering synonyms
+7/06/2017 6:32:33 a.m.	Gathering defaults
+7/06/2017 6:32:33 a.m.	Gathering data constraint uddt bindings
+7/06/2017 6:32:33 a.m.	Gathering rules
+7/06/2017 6:32:33 a.m.	Gathering data constraint uddt bindings
+7/06/2017 6:32:33 a.m.	Gathering message types
+7/06/2017 6:32:33 a.m.	Gathering queues
+7/06/2017 6:32:33 a.m.	Gathering contracts
+7/06/2017 6:32:33 a.m.	Gathering services
+7/06/2017 6:32:33 a.m.	Gathering event notifications
+7/06/2017 6:32:33 a.m.	Gathering remote service bindings
+7/06/2017 6:32:33 a.m.	Gathering broker priorities
+7/06/2017 6:32:33 a.m.	Gathering signatures
+7/06/2017 6:32:33 a.m.	Gathering data compression options
+7/06/2017 6:32:33 a.m.	Gathering sequence types
+7/06/2017 6:32:33 a.m.	Gathering extended properties
+7/06/2017 6:32:33 a.m.	Gathering credentials
+7/06/2017 6:32:33 a.m.	Gathering logins
+7/06/2017 6:32:33 a.m.	Gathering server audits
+7/06/2017 6:32:33 a.m.	Scanning project for duplicate elements
+7/06/2017 6:32:33 a.m.	Finished duplicate element processing
+7/06/2017 6:32:33 a.m.	Finished importing database.
+7/06/2017 6:32:33 a.m.	A summary of the import was saved to the following location: C:\Users\tallott\Documents\Visual Studio 2015\Projects\dbRad\dbRad\ControlDb\Import Schema Logs\ControlDb_20170606063228.log
+7/06/2017 6:32:33 a.m.	Click Finish to continue...
