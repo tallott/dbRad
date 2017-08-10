@@ -817,14 +817,15 @@ namespace dbRad
 
             //Main layout Grid - 2 cols by 3 rows
             Grid mainGrid = new Grid();
-            NameScope.SetNameScope(mainGrid, new NameScope());
+           // NameScope.SetNameScope(mainGrid, new NameScope());
 
             //1st Column
             ColumnDefinition col1 = new ColumnDefinition();
-            col1.Width = new GridLength(400);
-
+            col1.Width = GridLength.Auto;
+            
             //2nd Column
             ColumnDefinition col2 = new ColumnDefinition();
+            col1.Width = GridLength.Auto;
 
             //1st Row
             RowDefinition row1 = new RowDefinition();
@@ -860,7 +861,7 @@ namespace dbRad
 
             //Record selector area
             StackPanel RecordSelectorStkPnl = new StackPanel();
-            RecordSelectorStkPnl.Style = (Style)FindResource("winButtonStack");
+            RecordSelectorStkPnl.Style = (Style)FindResource("winPageSelectorStack");
 
             //Data tables
             //Window data grid - populated with a select query to underlying database table
@@ -913,20 +914,20 @@ namespace dbRad
             Button btnPrevPage = new Button();
             btnPrevPage.Name = "btnPrevPage";
             btnPrevPage.Content = "<";
-            btnPrevPage.Style = (Style)FindResource("winButtonStyle");
+            btnPrevPage.Style = (Style)FindResource("winTinyButtonStyle");
 
             Button btnNextPage = new Button();
             btnNextPage.Name = "btnNextPage";
             btnNextPage.Content = ">";
-            btnNextPage.Style = (Style)FindResource("winButtonStyle");
+            btnNextPage.Style = (Style)FindResource("winTinyButtonStyle");
 
             TextBox tbOffset = new TextBox();
             tbOffset.Text = "0";
+            tbOffset.Style = (Style)FindResource("winTinyTextBoxStyle");
 
             TextBox tbFetch = new TextBox();
             tbFetch.Text = "25";
-
-
+            tbFetch.Style = (Style)FindResource("winTinyTextBoxStyle");
 
             //Populate Data tables
             //Window Filter - Gets the list of filters for the window based on the underlying database table
@@ -1202,7 +1203,7 @@ namespace dbRad
             //Add Rows and Columns to the Grid
             mainGrid.ColumnDefinitions.Add(col1);
             mainGrid.ColumnDefinitions.Add(col2);
-
+            
             mainGrid.RowDefinitions.Add(row1);
             mainGrid.RowDefinitions.Add(row2);
             mainGrid.RowDefinitions.Add(row3);
@@ -1211,6 +1212,7 @@ namespace dbRad
             Grid.SetColumn(winDg, 1);
             Grid.SetRow(winDg, 1);
             Grid.SetRowSpan(winDg, 1);
+            
             mainGrid.Children.Add(winDg);
 
             //Add combo/text to stack panel

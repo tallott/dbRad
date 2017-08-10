@@ -7,7 +7,7 @@
 
         <Style x:Key="winStyle" TargetType="Window">
             <Setter Property="Background" Value="AntiqueWhite" />
-            
+
         </Style>
         <Style x:Key="winButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Beige" />
@@ -15,6 +15,17 @@
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="Margin" Value="4" />
             <Setter Property="Height" Value="25" />
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="winTinyButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Beige" />
+            <Setter Property="FontStyle" Value="Italic" />
+             <Setter Property="Margin" Value="2" />
+            <Setter Property="Height" Value="25" />
+            <Setter Property="Width" Value="25" />
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
         <Style x:Key="winTextBoxStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8,4" />
@@ -22,10 +33,17 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Margin" Value="2" />
         </Style>
+        <Style x:Key="winTinyTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="25" />
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
         <Style x:Key="winTextBlockStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Margin" Value="2" />
+            <Setter Property="Margin" Value="4" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="AcceptsReturn" Value="True"/>
         </Style>
@@ -39,13 +57,13 @@
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="Width" Value="200" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Margin" Value="2" />
+            <Setter Property="Margin" Value="4" />
         </Style>
         <Style x:Key="winDatePickerStyle" TargetType="DatePicker">
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="Width" Value="200" />
             <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Margin" Value="2" />
+            <Setter Property="Margin" Value="4" />
         </Style>
         <Style x:Key="winLabelStyle" TargetType="Label">
             <Setter Property="FontWeight" Value="Bold" />
@@ -53,27 +71,35 @@
             <Setter Property="Width" Value="200" />
         </Style>
         <Style x:Key="DataGridStyle" TargetType="{x:Type DataGrid}">
-            <Setter Property="Padding" Value="8,4" />
+            <!--<Setter Property="Padding" Value="8,4" />-->
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="10"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="MaxHeight" Value="600"/>
             <Setter Property="GridLinesVisibility" Value="Vertical"/>
             <Setter Property="CanUserResizeColumns" Value="False"/>
             <Setter Property="CanUserResizeRows" Value="False"/>
             <Setter Property="RowHeaderWidth" Value="0"/>
-            
         </Style>
         <Style x:Key="winEditPanelStyle" TargetType="StackPanel">
             <Setter Property="Background" Value="AntiqueWhite" />
-            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Margin" Value="4"/>
         </Style>
         <Style x:Key="winButtonStack" TargetType="StackPanel">
             <Setter Property="Orientation" Value="Horizontal" />
             <Setter Property="Height" Value="40"/>
-            <Setter Property="VerticalAlignment" Value="Bottom"/>
-            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="4"/>
+        </Style>
+        <Style x:Key="winPageSelectorStack" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="4"/>
 
         </Style>
     </Application.Resources>
