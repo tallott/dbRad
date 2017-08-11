@@ -75,7 +75,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="4"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="MaxHeight" Value="600"/>
             <Setter Property="GridLinesVisibility" Value="Vertical"/>
             <Setter Property="CanUserResizeColumns" Value="False"/>

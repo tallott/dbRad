@@ -53,8 +53,6 @@ namespace dbRad
         private void winSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear)
         //Sets the various mode for the winow
         {
-            Console.WriteLine("winSetMode");
-
             winNew.Resources.Remove("winMode");
             winNew.Resources.Add("winMode", winMode);
 
@@ -89,7 +87,6 @@ namespace dbRad
         private void dbGetDataGridRows(Window winNew, String tabId, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch)
         //Fills the form data grid with the filter applied
         {
-            Console.WriteLine("dbGetDataGridRows");
             SqlConnection appDbCon = new SqlConnection(Properties.Settings.Default.appDbCon);
 
             DataTable winDt = new DataTable();
@@ -144,12 +141,9 @@ namespace dbRad
 
             sqlTxt = sqlTxt + " WHERE " + fltTxt;
             sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
-            Console.WriteLine(sqlTxt);
 
             try
             {
-
-                //if (getFilterText(fltStkPnl) != fltTxt)
                 {
                     appDbCon.Open();
                     {
@@ -162,7 +156,6 @@ namespace dbRad
                         da.Fill(winDt);
 
                         //Define the grid columns
-                        Console.WriteLine("Updating Grid");
                         winDg.ItemsSource = winDt.DefaultView;
 
                         appDbCon.Close();
@@ -202,8 +195,6 @@ namespace dbRad
         private void dataGridSelectRow(string id, DataGrid winDg)
         //Selects the row in the data grid for the current id
         {
-            Console.WriteLine("Grid has:" + winDg.Items.Count + " rows and " + winDg.Columns.Count + " columns");
-            Console.Write("dataGridSelectRow id = " + id);
             winDg.UpdateLayout();
             try
             {
@@ -213,7 +204,6 @@ namespace dbRad
                     TextBlock cellContent = winDg.Columns[0].GetCellContent(row) as TextBlock;
                     if (cellContent != null && cellContent.Text.Equals(id))
                     {
-                        Console.WriteLine(" - " + i + " of " + winDg.Items.Count);
                         object item = winDg.Items[i];
                         winDg.SelectedItem = item;
                         winDg.ScrollIntoView(item);
@@ -224,7 +214,6 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                Console.WriteLine("");
                 MessageBox.Show("Problem Selecting the DataGrid Row :" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
@@ -232,7 +221,6 @@ namespace dbRad
         private string dataGridGetId(DataGrid winDg)
         //Gets the Id of the selected grid row
         {
-            Console.WriteLine("dataGridGetId");
             string id = null;
 
             DataRowView drv = (DataRowView)winDg.SelectedValue;
@@ -245,10 +233,6 @@ namespace dbRad
         private void dataGridClicked(String tabId, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValues)
         //gets the id of the row selected and loads the edit fileds with the database values
         {
-
-            Console.WriteLine("dataGridClicked");
-            //DataTable winSelectedRowDataTable = new DataTable();
-
             string id = dataGridGetId(winDg);
             try
             {
@@ -269,7 +253,6 @@ namespace dbRad
         private void winLoadDataRow(StackPanel editStkPnl, DataTable winSelectedRowDataTable, Dictionary<string, string> controlValues)
         //Loads the data editing UI with the values from the row in winSelectedRowDataTable 
         {
-            Console.WriteLine("winLoadDataRow");
             //Loop the Row (Filtered by @Id) and columns of the underlying dataset
             try
             {
@@ -336,7 +319,6 @@ namespace dbRad
         //Clears the data edit fields
 
         {
-            Console.WriteLine("winClearDataFields " + keepFilters.ToString());
             string filterList = winNew.FindResource("winFilter").ToString();
             foreach (FrameworkElement element in editStkPnl.Children)
             {
@@ -392,7 +374,6 @@ namespace dbRad
         private DataTable dbGetDataRow(string tabId, string id, StackPanel editStkPnl)
         //Loads a single row from the database into a table for the record for the selected ID
         {
-            Console.WriteLine("dbGetDataRow");
             SqlConnection appDbCon = new SqlConnection(Properties.Settings.Default.appDbCon);
 
             string tabSchema = winMetadataList(tabId)[2];
@@ -585,7 +566,6 @@ namespace dbRad
                     { //Update the selected record in database
 
                         sql = sql.Trim(',', ' ') + " WHERE " + tabKey + " = @Id"; ;
-                        Console.WriteLine(sql);
 
                         SqlCommand listItemSaveSql = new SqlCommand();
                         listItemSaveSql.CommandText = sql;
@@ -817,12 +797,12 @@ namespace dbRad
 
             //Main layout Grid - 2 cols by 3 rows
             Grid mainGrid = new Grid();
-           // NameScope.SetNameScope(mainGrid, new NameScope());
+            // NameScope.SetNameScope(mainGrid, new NameScope());
 
             //1st Column
             ColumnDefinition col1 = new ColumnDefinition();
             col1.Width = GridLength.Auto;
-            
+
             //2nd Column
             ColumnDefinition col2 = new ColumnDefinition();
             col1.Width = GridLength.Auto;
@@ -1076,7 +1056,6 @@ namespace dbRad
                             {
                                 if (cb.SelectedValue != null)
                                 {
-                                    Console.WriteLine("Combo Selected");
                                     winGetControlValue(cb, controlValues);
                                     if (winNew.Resources["winMode"].ToString() != "EDIT")
                                     {
@@ -1114,8 +1093,6 @@ namespace dbRad
             //Data Grid
             winDg.SelectionChanged += new SelectionChangedEventHandler((s, e) =>
             {
-                Console.WriteLine("");
-                Console.WriteLine("Data Grid Clicked");
                 if (winDg.SelectedItem == null) return;
 
                 winSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
@@ -1125,8 +1102,6 @@ namespace dbRad
             //Filter Selector
             winFlt.DropDownClosed += new EventHandler((s, e) =>
             {
-                Console.WriteLine("");
-                Console.WriteLine("Filter Selected");
                 ComboBox clicked = (ComboBox)s;
                 seletedFilter = (Int32)clicked.SelectedValue;
                 winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
@@ -1138,9 +1113,6 @@ namespace dbRad
             //buttons
             btnSave.Click += new RoutedEventHandler((s, e) =>
             {
-                Console.WriteLine("");
-                Console.WriteLine("Save Button Clicked");
-
                 switch (winNew.Resources["winMode"].ToString())
                 {
                     case "NEW":
@@ -1157,23 +1129,17 @@ namespace dbRad
             });
             btnNew.Click += new RoutedEventHandler((s, e) =>
             {
-                Console.WriteLine("");
-                Console.WriteLine("New Button Clicked");
                 winSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                 winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
             });
             btnDelete.Click += new RoutedEventHandler((s, e) =>
             {
-                Console.WriteLine("");
-                Console.WriteLine("Delete Button Clicked");
                 dbDeleteRecord(winNew, tabId, fltStkPnl, winDg, editStkPnl, seletedFilter, controlValues, tbOffset, tbFetch);
                 winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
             });
             btnExit.Click += new RoutedEventHandler(winClose);
             btnClear.Click += new RoutedEventHandler((s, e) =>
             {
-                Console.WriteLine("");
-                Console.WriteLine("Clear Button Clicked");
                 seletedFilter = 0;
                 winFlt.SelectedIndex = seletedFilter;
                 winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
@@ -1191,19 +1157,20 @@ namespace dbRad
 
             btnNextPage.Click += new RoutedEventHandler((s, e) =>
             {
-                
+
                 tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) + Convert.ToInt32(tbFetch.Text));
             });
 
             btnPrevPage.Click += new RoutedEventHandler((s, e) =>
-            {if (Convert.ToInt32(tbOffset.Text) >= Convert.ToInt32(tbFetch.Text))
-                tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) - Convert.ToInt32(tbFetch.Text));
+            {
+                if (Convert.ToInt32(tbOffset.Text) >= Convert.ToInt32(tbFetch.Text))
+                    tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) - Convert.ToInt32(tbFetch.Text));
             });
 
             //Add Rows and Columns to the Grid
             mainGrid.ColumnDefinitions.Add(col1);
             mainGrid.ColumnDefinitions.Add(col2);
-            
+
             mainGrid.RowDefinitions.Add(row1);
             mainGrid.RowDefinitions.Add(row2);
             mainGrid.RowDefinitions.Add(row3);
@@ -1212,7 +1179,7 @@ namespace dbRad
             Grid.SetColumn(winDg, 1);
             Grid.SetRow(winDg, 1);
             Grid.SetRowSpan(winDg, 1);
-            
+
             mainGrid.Children.Add(winDg);
 
             //Add combo/text to stack panel
