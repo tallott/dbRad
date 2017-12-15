@@ -26,7 +26,8 @@ namespace dbRad.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=ALLOTT-W01-64\\SQL2014;Initial Catalog=wsac;Integrated Security=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=ALLOTT-W01-64\\SQL2014;Initial Catalog=Control;User ID=sa;Password=Pak" +
+            "ula01")]
         public string appDbCon {
             get {
                 return ((string)(this["appDbCon"]));
@@ -46,7 +47,7 @@ namespace dbRad.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("wsac")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Control")]
         public string appDbName {
             get {
                 return ((string)(this["appDbName"]));
