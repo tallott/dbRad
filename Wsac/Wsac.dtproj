@@ -26,7 +26,7 @@
           <SSIS:Property SSIS:Name="CreatorComputerName">ALLOTT-W01-64</SSIS:Property>
           <SSIS:Property SSIS:Name="Description">
           </SSIS:Property>
-          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAASQ03cSlIgk+9eRU3UWppSAAAAAACAAAAAAAQZgAAAAEAACAAAAAScgiVcpFIgj3FwxTyEjF/f1KMvmf9r8NuVIxzJJaOVwAAAAAOgAAAAAIAACAAAABeTHPtoFAynH4/ZA0vR2ldE2Wn3NR4l54YtGiKEf7Hc5AAAAD3Oo9BuhJVlnAkrBZ1VdQ62WRvmIJMIdCCobBSGLpkFQW0TPxARAIqm/s07QPnx06kJaV0IK84XsebTsoP3cEJ/hNTb6KFgPOC6MoQ7KJgg6mOG10lCyQfDpiFDc59pnf61sXtNaKAY9XWxGkdpIaPmU6wymYN6WdPgwc4zU8C3NK18lKaQAE13VLsXpFN6+ZAAAAAunE663wK1hiPtLkgZRzwJRJQSVi8EFF+No/6t9+4O1VbIEx2dvuoIN/EJ4w+8uo5+StVeECUa3orBdiRVpKVyQ==</SSIS:Property>
+          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAA3mbr17lCzEeRwkpsEp7q/AAAAAACAAAAAAAQZgAAAAEAACAAAACxaYPMczJoIHLGicYQXGyLLxjcelkMEOp5yccRgoCj7AAAAAAOgAAAAAIAACAAAADBpbbnMUuF9SGGD4yOWgiY8WfOmrO/D8fR9Cz0Cewtp5AAAADDD7ArCzLeLR1aDLsd742AWBtPgauKNZsPa7C41NV3DTme4iv8SnbbN1NwUWvWkOnqScuvwjZp1xm6skW63uNfEMr0Ek5ulMDBeXPq7WI6nS+FOhSOZbbKKRwo7qNx9VLb6Z0B2UqgJyX4VLdxpwlQ1QtsonU9lGUl4EUQcVt1fulA/D9uB8L3VNc5GU0IDn5AAAAA/K7p9kg/v2tVAhCDVYtOUbGbAnB2bMvUFFJhjwo8zYFIsEaLgMkIqv3uduhlmhdM4GbaHnebfAIwtoWgGwVfaA==</SSIS:Property>
           <SSIS:Property SSIS:Name="FormatVersion">1</SSIS:Property>
         </SSIS:Properties>
         <SSIS:Packages>
@@ -388,6 +388,24 @@
   <Configurations>
     <Configuration>
       <Name>Development</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2017</TargetServerVersion>
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2017-08-13T06:34:36.2051918Z</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+    <Configuration>
+      <Name>web</Name>
       <Options>
         <OutputPath>bin</OutputPath>
         <ConnectionMappings />

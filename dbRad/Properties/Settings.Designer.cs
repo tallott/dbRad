@@ -12,8 +12,8 @@ namespace dbRad.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.3.0.0")]
+    public sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
         
@@ -23,34 +23,75 @@ namespace dbRad.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=ALLOTT-W01-64\\SQL2014;Initial Catalog=Control;User ID=sa;Password=Pak" +
-            "ula01")]
-        public string appDbCon {
+        [global::System.Configuration.DefaultSettingValueAttribute("wsac")]
+        public string applicationName {
             get {
-                return ((string)(this["appDbCon"]));
+                return ((string)(this["applicationName"]));
+            }
+            set {
+                this["applicationName"] = value;
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=ALLOTT-W01-64\\SQL2014;Initial Catalog=Control;Integrated Security=Tru" +
-            "e")]
-        public string controllDbCon {
+        [global::System.Configuration.DefaultSettingValueAttribute("wsac.talapajar.com")]
+        public string applicationHostName {
             get {
-                return ((string)(this["controllDbCon"]));
+                return ((string)(this["applicationHostName"]));
+            }
+            set {
+                this["applicationHostName"] = value;
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("sa")]
+        public string controlerUserName {
+            get {
+                return ((string)(this["controlerUserName"]));
+            }
+            set {
+                this["controlerUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("wsac.talapajar.com")]
+        public string controlerHostName {
+            get {
+                return ((string)(this["controlerHostName"]));
+            }
+            set {
+                this["controlerHostName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("sa")]
+        public string applicationUserName {
+            get {
+                return ((string)(this["applicationUserName"]));
+            }
+            set {
+                this["applicationUserName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Control")]
-        public string appDbName {
+        public string ControlerName {
             get {
-                return ((string)(this["appDbName"]));
+                return ((string)(this["ControlerName"]));
+            }
+            set {
+                this["ControlerName"] = value;
             }
         }
     }
