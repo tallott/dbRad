@@ -57,7 +57,7 @@ namespace dbRad
             winMain.Show();
             foreach (Window window in App.Current.Windows)
             {
-                if (window.Name == "winMain")
+                if (window.Name != "winConfig")
                 {
 
                     window.Close();

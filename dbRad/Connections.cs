@@ -3,9 +3,9 @@ namespace dbRad
 {
     public partial class Connections
     {
-        private string _HostName = "myhost";
-        private string _Name = "mycatalogue";
-        private string _UserName = "myuser";
+        private string _HostName = string.Empty;
+        private string _Name = string.Empty;
+        private string _UserName = string.Empty;
         private string _UserPassword = "Pakula01";
 
         public string HostName

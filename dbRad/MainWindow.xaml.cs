@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
+
 namespace dbRad
 {
     /// <summary>
@@ -19,26 +20,30 @@ namespace dbRad
         public MainWindow()
         {
             InitializeComponent();
+            appStartup();
 
-            if (!File.Exists(Config.controlDbFilePath))
-            {
-                Window config = new Config();
-                config.Show();
-            }
-            else
+
+        }
+        private void appStartup()
+        {
+            if (File.Exists(Config.controlDbFilePath))
             {
                 Config.controlDb = Filetasks.ReadFromXmlFile<Connections>(Config.controlDbFilePath);
             }
-            if (!File.Exists(Config.applicationDbFilePath))
+            if (File.Exists(Config.applicationDbFilePath))
+            {
+                Config.applicationlDb = Filetasks.ReadFromXmlFile<Connections>(Config.applicationDbFilePath);
+            }
+            if (Config.controlDb.HostName == string.Empty)
             {
                 Window config = new Config();
                 config.Show();
             }
             else
             {
-                Config.applicationlDb = Filetasks.ReadFromXmlFile<Connections>(Config.applicationDbFilePath);
+                mainWinBuild();
             }
-            mainWinBuild();
+
         }
 
         private void appShutdown(object sender, EventArgs e)
@@ -59,7 +64,6 @@ namespace dbRad
             Window winConfig = new Config();
             winConfig.Show();
         }
-
 
         private void dbGetDataGridRows(Window winNew, String tabId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
@@ -430,15 +434,22 @@ namespace dbRad
 
 
             SqlCommand winSelectedRowSql = new SqlCommand();
-            winSelectedRowSql.CommandText = "SELECT * FROM " + tabSchema + "." + tabName + " WHERE " + tabKey + " = @Id";
+            winSelectedRowSql.CommandText = "SELECT * FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
             winSelectedRowSql.Parameters.AddWithValue("@Id", id);
             winSelectedRowSql.CommandType = CommandType.Text;
             winSelectedRowSql.Connection = appDbCon;
 
             appDbCon.Open();
-
-            SqlDataAdapter winDa = new SqlDataAdapter(winSelectedRowSql);
-            winDa.Fill(winSelectedRowDataTable);
+            try
+            {
+                SqlDataAdapter winDa = new SqlDataAdapter(winSelectedRowSql);
+                winDa.Fill(winSelectedRowDataTable);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Problem Loading data grid row:" + winSelectedRowSql + ":" + ex.Message + ex.StackTrace, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        ;
 
             appDbCon.Close();
             return winSelectedRowDataTable;
@@ -727,11 +738,10 @@ namespace dbRad
             openMenu.Header = "Open";
             this.menu.Items.Add(openMenu);
 
-
             //Open Menu Items are Dynamicly populated with table names in control.ApplicationTable;
             SqlCommand getTabList = new SqlCommand();
 
-            getTabList.CommandText = "SELECT t.ApplicationTableId, t.TableLabel FROM ApplicationTable t INNER JOIN ApplicationDatabase d ON t.ApplicationDatabaseId = d.ApplicationDatabaseId WHERE d.DatabaseName = @appDbName ORDER BY TableName";
+            getTabList.CommandText = "SELECT t.ApplicationTableId, t.TableLabel FROM ApplicationTable t INNER JOIN Application a ON t.ApplicationId = a.ApplicationId WHERE a.ApplicationName = @appDbName ORDER BY t.TableName";
             getTabList.CommandType = CommandType.Text;
             getTabList.Parameters.AddWithValue("@appDbName", appDbName);
             getTabList.Connection = ctrlDbCon;

@@ -119,7 +119,7 @@ namespace dbRad
                 Filetasks.WriteToXmlFile<Connections>(controlDbFilePath, controlDb);
                 Filetasks.WriteToXmlFile<Connections>(applicationDbFilePath, applicationlDb);
                 Filetasks.WriteToXmlFile<Settings>(settingsFilePath, settings);
-                //WindowTasks.winClose(s, e);
+             
             });
 
             buttonStackPanel.Children.Add(buttonSave);
