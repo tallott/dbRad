@@ -741,9 +741,9 @@ namespace dbRad
             //Open Menu Items are Dynamicly populated with table names in control.ApplicationTable;
             SqlCommand getTabList = new SqlCommand();
 
-            x
+            //x
             //Edit this sql to filter to user role assigned tables only
-            getTabList.CommandText = "SELECT t.ApplicationTableId, t.TableLabel FROM ApplicationTable t INNER JOIN Application a ON t.ApplicationId = a.ApplicationId WHERE a.ApplicationName = @appDbName ORDER BY t.TableName";
+            getTabList.CommandText = "SELECT t.ApplicationTableId, t.TableLabel FROM ApplicationTable t INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId INNER JOIN Application a on apps.ApplicationId = a.ApplicationId WHERE a.ApplicationName = @appDbName ORDER BY t.TableName";
             getTabList.CommandType = CommandType.Text;
             getTabList.Parameters.AddWithValue("@appDbName", appDbName);
             getTabList.Connection = ctrlDbCon;
@@ -796,33 +796,6 @@ namespace dbRad
                 controlValues[key] = "";
             }
         }
-
-        //static List<string> winMetadataList(string tabId)
-        ////Returns the list of metadata values for a window
-        //{
-        //    SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
-        //    List<string> listRange = new List<string>();
-
-        //    //get the table string values
-        //    SqlCommand getTab = new SqlCommand();
-        //    getTab.CommandText = "SELECT t.TableName, t.TableLabel, s.SchemaName, t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema s ON t.ApplicationSchemaId  = s.ApplicationSchemaId WHERE ApplicationTableId = @tabId";
-        //    getTab.CommandType = CommandType.Text;
-        //    getTab.Parameters.AddWithValue("@tabId", tabId);
-        //    getTab.Connection = ctrlDbCon;
-        //    ctrlDbCon.Open();
-
-        //    SqlDataReader getTabReader = getTab.ExecuteReader();
-        //    getTabReader.Read();
-
-        //    listRange.Add(getTabReader["TableName"].ToString());
-        //    listRange.Add(getTabReader["TableLabel"].ToString());
-        //    listRange.Add(getTabReader["SchemaName"].ToString());
-        //    listRange.Add(getTabReader["TableKey"].ToString());
-
-        //    ctrlDbCon.Close();
-        //    return listRange;
-
-        //}
 
         private void winConstruct(string tabId)
         //Builds the window for the selected table 
