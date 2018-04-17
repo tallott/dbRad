@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +12,32 @@ namespace dbRad
 {
     public partial class WindowTasks
     {
+      public  static List<string> winMetadataList(string tabId)
+        //Returns the list of metadata values for a window
+        {
+            SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
+            List<string> listRange = new List<string>();
+            X//Add additional list item for user permissions
+            //get the table string values
+            SqlCommand getTab = new SqlCommand();
+            getTab.CommandText = "SELECT t.TableName, t.TableLabel, s.SchemaName, t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema s ON t.ApplicationSchemaId  = s.ApplicationSchemaId WHERE ApplicationTableId = @tabId";
+            getTab.CommandType = CommandType.Text;
+            getTab.Parameters.AddWithValue("@tabId", tabId);
+            getTab.Connection = ctrlDbCon;
+            ctrlDbCon.Open();
+
+            SqlDataReader getTabReader = getTab.ExecuteReader();
+            getTabReader.Read();
+
+            listRange.Add(getTabReader["TableName"].ToString());
+            listRange.Add(getTabReader["TableLabel"].ToString());
+            listRange.Add(getTabReader["SchemaName"].ToString());
+            listRange.Add(getTabReader["TableKey"].ToString());
+
+            ctrlDbCon.Close();
+            return listRange;
+
+        }
         public static void winClose(object sender, RoutedEventArgs e)
         {
             Button clicked = (Button)sender;

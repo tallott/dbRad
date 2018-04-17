@@ -143,8 +143,8 @@ namespace dbRad
                         winDg.ItemsSource = winDt.DefaultView;
 
                         //set the page counter
-                        string tabSchema = winMetadataList(tabId)[2];
-                        string tabName = winMetadataList(tabId)[0];
+                        string tabSchema = WindowTasks.winMetadataList(tabId)[2];
+                        string tabName = WindowTasks.winMetadataList(tabId)[0];
                         int rowCount = 0;
 
                         int chrStart = sqlCountText.IndexOf("SELECT") + 6;
@@ -425,9 +425,9 @@ namespace dbRad
         {
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-            string tabSchema = winMetadataList(tabId)[2];
-            string tabName = winMetadataList(tabId)[0];
-            string tabKey = winMetadataList(tabId)[3];
+            string tabSchema = WindowTasks.winMetadataList(tabId)[2];
+            string tabName = WindowTasks.winMetadataList(tabId)[0];
+            string tabKey = WindowTasks.winMetadataList(tabId)[3];
 
             DataTable winSelectedRowDataTable = new DataTable();
 
@@ -463,9 +463,9 @@ namespace dbRad
             {
                 SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-                string tabSchema = winMetadataList(tabId)[2];
-                string tabName = winMetadataList(tabId)[0];
-                string tabKey = winMetadataList(tabId)[3];
+                string tabSchema = WindowTasks.winMetadataList(tabId)[2];
+                string tabName = WindowTasks.winMetadataList(tabId)[0];
+                string tabKey = WindowTasks.winMetadataList(tabId)[3];
 
 
                 List<string> columns = new List<string>();
@@ -541,9 +541,9 @@ namespace dbRad
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
 
-            string tabSchema = winMetadataList(tabId)[2];
-            string tabName = winMetadataList(tabId)[0];
-            string tabKey = winMetadataList(tabId)[3];
+            string tabSchema = WindowTasks.winMetadataList(tabId)[2];
+            string tabName = WindowTasks.winMetadataList(tabId)[0];
+            string tabKey = WindowTasks.winMetadataList(tabId)[3];
 
             try
             {
@@ -667,9 +667,9 @@ namespace dbRad
         {
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-            string tabSchema = winMetadataList(tabId)[2];
-            string tabName = winMetadataList(tabId)[0];
-            string tabKey = winMetadataList(tabId)[3];
+            string tabSchema = WindowTasks.winMetadataList(tabId)[2];
+            string tabName = WindowTasks.winMetadataList(tabId)[0];
+            string tabKey = WindowTasks.winMetadataList(tabId)[3];
 
             try
             {
@@ -741,6 +741,8 @@ namespace dbRad
             //Open Menu Items are Dynamicly populated with table names in control.ApplicationTable;
             SqlCommand getTabList = new SqlCommand();
 
+            x
+            //Edit this sql to filter to user role assigned tables only
             getTabList.CommandText = "SELECT t.ApplicationTableId, t.TableLabel FROM ApplicationTable t INNER JOIN Application a ON t.ApplicationId = a.ApplicationId WHERE a.ApplicationName = @appDbName ORDER BY t.TableName";
             getTabList.CommandType = CommandType.Text;
             getTabList.Parameters.AddWithValue("@appDbName", appDbName);
@@ -795,32 +797,32 @@ namespace dbRad
             }
         }
 
-        static List<string> winMetadataList(string tabId)
-        //Returns the list of metadata values for a window
-        {
-            SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
-            List<string> listRange = new List<string>();
+        //static List<string> winMetadataList(string tabId)
+        ////Returns the list of metadata values for a window
+        //{
+        //    SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
+        //    List<string> listRange = new List<string>();
 
-            //get the table string values
-            SqlCommand getTab = new SqlCommand();
-            getTab.CommandText = "SELECT t.TableName, t.TableLabel, s.SchemaName, t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema s ON t.ApplicationSchemaId  = s.ApplicationSchemaId WHERE ApplicationTableId = @tabId";
-            getTab.CommandType = CommandType.Text;
-            getTab.Parameters.AddWithValue("@tabId", tabId);
-            getTab.Connection = ctrlDbCon;
-            ctrlDbCon.Open();
+        //    //get the table string values
+        //    SqlCommand getTab = new SqlCommand();
+        //    getTab.CommandText = "SELECT t.TableName, t.TableLabel, s.SchemaName, t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema s ON t.ApplicationSchemaId  = s.ApplicationSchemaId WHERE ApplicationTableId = @tabId";
+        //    getTab.CommandType = CommandType.Text;
+        //    getTab.Parameters.AddWithValue("@tabId", tabId);
+        //    getTab.Connection = ctrlDbCon;
+        //    ctrlDbCon.Open();
 
-            SqlDataReader getTabReader = getTab.ExecuteReader();
-            getTabReader.Read();
+        //    SqlDataReader getTabReader = getTab.ExecuteReader();
+        //    getTabReader.Read();
 
-            listRange.Add(getTabReader["TableName"].ToString());
-            listRange.Add(getTabReader["TableLabel"].ToString());
-            listRange.Add(getTabReader["SchemaName"].ToString());
-            listRange.Add(getTabReader["TableKey"].ToString());
+        //    listRange.Add(getTabReader["TableName"].ToString());
+        //    listRange.Add(getTabReader["TableLabel"].ToString());
+        //    listRange.Add(getTabReader["SchemaName"].ToString());
+        //    listRange.Add(getTabReader["TableKey"].ToString());
 
-            ctrlDbCon.Close();
-            return listRange;
+        //    ctrlDbCon.Close();
+        //    return listRange;
 
-        }
+        //}
 
         private void winConstruct(string tabId)
         //Builds the window for the selected table 
@@ -836,10 +838,10 @@ namespace dbRad
             Dictionary<string, string> controlValues = new Dictionary<string, string>();
             Int32 seletedFilter = 0;
 
-            string tabName = winMetadataList(tabId)[0];
-            string tableLabel = winMetadataList(tabId)[1];
-            string tableSchema = winMetadataList(tabId)[2];
-            string TableKey = winMetadataList(tabId)[3];
+            string tabName = WindowTasks.winMetadataList(tabId)[0];
+            string tableLabel = WindowTasks.winMetadataList(tabId)[1];
+            string tableSchema = WindowTasks.winMetadataList(tabId)[2];
+            string TableKey = WindowTasks.winMetadataList(tabId)[3];
 
             //Create a new window - this is a window based on an underlying database table
             Window winNew = new Window();
