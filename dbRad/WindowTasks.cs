@@ -17,11 +17,13 @@ namespace dbRad
         {
             SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
             List<string> listRange = new List<string>();
-            //X//Add additional list item for user permissions
+       
             //get the table string values
-            SqlCommand getTab = new SqlCommand();
-            getTab.CommandText = "SELECT t.TableName,t.TableLabel,s.SchemaName,t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId INNER JOIN[Schema] s on apps.SchemaId = s.SchemaId WHERE ApplicationTableId = @tabId";
-            getTab.CommandType = CommandType.Text;
+            SqlCommand getTab = new SqlCommand
+            {
+                CommandText = "SELECT t.TableName,t.TableLabel,s.SchemaName,t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId INNER JOIN[Schema] s on apps.SchemaId = s.SchemaId WHERE ApplicationTableId = @tabId",
+                CommandType = CommandType.Text
+            };
             getTab.Parameters.AddWithValue("@tabId", tabId);
             getTab.Connection = ctrlDbCon;
             ctrlDbCon.Open();

@@ -703,7 +703,8 @@ namespace dbRad
 
         //Builds the main window for the appDbName
         {
-            SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
+            SqlConnection ctrlSchDbCon = new SqlConnection(Config.controlDb.ToString());
+            SqlConnection ctrlTabDbCon = new SqlConnection(Config.controlDb.ToString());
 
             //Get configured Application database
             string appDbName = Config.applicationlDb.Name;
@@ -739,29 +740,65 @@ namespace dbRad
             this.menu.Items.Add(openMenu);
 
             //Open Menu Items are Dynamicly populated with table names in control.ApplicationTable;
-            SqlCommand getTabList = new SqlCommand();
 
-            //x
-            //Edit this sql to filter to user role assigned tables only
-            getTabList.CommandText = "SELECT t.ApplicationTableId, t.TableLabel FROM ApplicationTable t INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId INNER JOIN Application a on apps.ApplicationId = a.ApplicationId WHERE a.ApplicationName = @appDbName ORDER BY t.TableName";
-            getTabList.CommandType = CommandType.Text;
-            getTabList.Parameters.AddWithValue("@appDbName", appDbName);
-            getTabList.Connection = ctrlDbCon;
-            ctrlDbCon.Open();
+            SqlCommand getSchList = new SqlCommand();
+            getSchList.CommandText =
+                  @"SELECT aps.ApplicationSchemaId,
+                           s.SchemaName
+                    FROM ApplicationSchema aps
+                         INNER JOIN [Schema] s ON s.SchemaId = aps.SchemaId
+                         INNER JOIN Application a ON a.ApplicationId = aps.ApplicationId
+                    WHERE a.ApplicationName = @appDbName
+                    ORDER BY s.SchemaName";
+
+            getSchList.CommandType = CommandType.Text;
+            getSchList.Parameters.AddWithValue("@appDbName", appDbName);
+            getSchList.Connection = ctrlSchDbCon;
+            ctrlSchDbCon.Open();
+
             {
-                SqlDataReader reader = getTabList.ExecuteReader();
-                while (reader.Read())
-                {
-                    string tabId = reader["ApplicationTableId"].ToString();
-                    string tabLable = reader["TableLabel"].ToString();
-                    MenuItem fileOpenItem = new MenuItem();
-                    fileOpenItem.Header = tabLable;
-                    fileOpenItem.Click += new RoutedEventHandler((s, e) => { winConstruct(tabId); });
+                SqlDataReader schReader = getSchList.ExecuteReader();
 
-                    openMenu.Items.Add(fileOpenItem);
+                while (schReader.Read())
+                {
+                    string schId = schReader["ApplicationSchemaId"].ToString();
+                    string schName = schReader["SchemaName"].ToString();
+                    MenuItem schemaOpen = new MenuItem();
+                    schemaOpen.Header = schName;
+                    openMenu.Items.Add(schemaOpen);
+                    SqlCommand getTabList = new SqlCommand();
+
+
+                    getTabList.CommandText =
+                          @"SELECT t.ApplicationTableId,
+                            t.TableLabel
+                    FROM ApplicationTable t
+                            INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId
+                    WHERE apps.ApplicationSchemaId = @ApplicationSchemaId
+                    ORDER BY t.TableName";
+                    getTabList.CommandType = CommandType.Text;
+
+                    getTabList.Connection = ctrlTabDbCon;
+                    ctrlTabDbCon.Open();
+
+                    getTabList.Parameters.AddWithValue("@ApplicationSchemaId", schId);
+                    SqlDataReader tabReader = getTabList.ExecuteReader();
+                    while (tabReader.Read())
+                    {
+                        string tabId = tabReader["ApplicationTableId"].ToString();
+                        string tabLable = tabReader["TableLabel"].ToString();
+                        MenuItem schemaOpenItem = new MenuItem();
+                        schemaOpenItem.Header = tabLable;
+                        schemaOpenItem.Click += new RoutedEventHandler((s, e) => { winConstruct(tabId); });
+
+                        schemaOpen.Items.Add(schemaOpenItem);
+                    };
+                    ctrlTabDbCon.Close();
                 };
+
             }
-            ctrlDbCon.Close();
+
+            ctrlSchDbCon.Close();
         }
 
         private void winGetControlValue(ComboBox cb, Dictionary<string, string> controlValues)
