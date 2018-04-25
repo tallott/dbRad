@@ -18,10 +18,10 @@ namespace dbRad
 
             return FileName;
         }
-        public static string SettingsFilePath()
+        public static string UserFilePath()
         {
             string FileName;
-            FileName = ApplicationDirectory() + "Settings.xml";
+            FileName = ApplicationDirectory() + "User.xml";
 
             return FileName;
         }

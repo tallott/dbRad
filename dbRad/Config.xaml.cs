@@ -24,8 +24,8 @@ namespace dbRad
         public static Connections applicationlDb = new Connections();
         public static string applicationDbFilePath = Env.ApplicationDbFilePath();
 
-        public static Settings settings = new Settings();
-        string settingsFilePath = Env.SettingsFilePath();
+        public static User applicationUser = new User();
+        public static string userFilePath = Env.UserFilePath();
 
         private Style FindStyle(string styleName)
         {
@@ -46,6 +46,13 @@ namespace dbRad
             Grid mainGrid = new Grid();
             TabControl tabControl = new TabControl();
 
+            TabItem settingstab = new TabItem();
+            settingstab.Header = "Settings";
+            settingstab.GotFocus += new RoutedEventHandler((s, e) =>
+            {
+                window.SizeToContent = SizeToContent.WidthAndHeight;
+            });
+
             TabItem controlDbtab = new TabItem();
             controlDbtab.Header = "Control";
             controlDbtab.GotFocus += new RoutedEventHandler((s, e) =>
@@ -59,18 +66,11 @@ namespace dbRad
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
             });
-
-            TabItem settingstab = new TabItem();
-            settingstab.Header = "Settings";
-            settingstab.GotFocus += new RoutedEventHandler((s, e) =>
-            {
-                window.SizeToContent = SizeToContent.WidthAndHeight;
-            });
-
+            
+            tabControl.Items.Add(settingstab);
             tabControl.Items.Add(controlDbtab);
             tabControl.Items.Add(applicationDbtab);
-            tabControl.Items.Add(settingstab);
-
+            
             RowDefinition row1 = new RowDefinition();
             row1.Height = GridLength.Auto;
 
@@ -118,8 +118,9 @@ namespace dbRad
             {
                 Filetasks.WriteToXmlFile<Connections>(controlDbFilePath, controlDb);
                 Filetasks.WriteToXmlFile<Connections>(applicationDbFilePath, applicationlDb);
-                Filetasks.WriteToXmlFile<Settings>(settingsFilePath, settings);
-             
+                Filetasks.WriteToXmlFile<User>(userFilePath, applicationUser);
+                WindowTasks.winClose(s, e);
+
             });
 
             buttonStackPanel.Children.Add(buttonSave);
@@ -150,15 +151,15 @@ namespace dbRad
                 BuildFormClass(applicationDbStackPanel, lableStyle, textBoxStyle, applicationlDb, out applicationDbStackPanel);
             }
 
-            if (File.Exists(settingsFilePath))
+            if (File.Exists(userFilePath))
             {
-                settings = Filetasks.ReadFromXmlFile<Settings>(settingsFilePath);
-                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, settings, out settingsStackPanel);
+                applicationUser = Filetasks.ReadFromXmlFile<User>(userFilePath);
+                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
             else
             {
-                Filetasks.WriteToXmlFile<Settings>(settingsFilePath, settings);
-                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, settings, out settingsStackPanel);
+                Filetasks.WriteToXmlFile<User>(userFilePath, applicationUser);
+                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
 
             Grid.SetRow(buttonStackPanel, 1);
@@ -170,13 +171,13 @@ namespace dbRad
         }
         private static StackPanel BuildFormClass<T>(StackPanel stackPanelIn, Style lableStyle, Style textBoxStyle, T Tclass, out StackPanel stackPanelOut)
         {
-            Type controlDbType = Tclass.GetType();
-            PropertyInfo[] controlDbProperties = controlDbType.GetProperties();
+            Type tClass = Tclass.GetType();
+            PropertyInfo[] tClassProperties = tClass.GetProperties();
 
-            foreach (PropertyInfo controlDbProperty in controlDbProperties)
+            foreach (PropertyInfo tClassProperty in tClassProperties)
             {
-                string propertyName = controlDbProperty.Name.ToString();
-                string propertyValue = controlDbProperty.GetValue(Tclass, null).ToString();
+                string propertyName = tClassProperty.Name.ToString();
+                string propertyValue = tClassProperty.GetValue(Tclass, null).ToString();
 
                 Label label = new Label();
                 label.Style = lableStyle;

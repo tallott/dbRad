@@ -26,6 +26,10 @@ namespace dbRad
         }
         private void appStartup()
         {
+            if (File.Exists(Config.userFilePath))
+            {
+                Config.applicationUser = Filetasks.ReadFromXmlFile<User>(Config.userFilePath);
+            }
             if (File.Exists(Config.controlDbFilePath))
             {
                 Config.controlDb = Filetasks.ReadFromXmlFile<Connections>(Config.controlDbFilePath);
@@ -34,7 +38,7 @@ namespace dbRad
             {
                 Config.applicationlDb = Filetasks.ReadFromXmlFile<Connections>(Config.applicationDbFilePath);
             }
-            if (Config.controlDb.HostName == string.Empty)
+            if (Config.controlDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
             {
                 Window config = new Config();
                 config.Show();
@@ -513,7 +517,7 @@ namespace dbRad
                 }
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                string sql = "INSERT INTO " + tabSchema + "." + tabName + csvColumns + csvColumnUpdates;
+                string sql = "INSERT INTO " + tabSchema + ".[" + tabName + "]" + csvColumns + csvColumnUpdates;
 
                 SqlCommand dbCreateRecordSql = new SqlCommand();
                 dbCreateRecordSql.CommandText = sql;
@@ -555,7 +559,7 @@ namespace dbRad
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
-                    string sql = "UPDATE " + tabSchema + "." + tabName + " SET ";
+                    string sql = "UPDATE " + tabSchema + ".[" + tabName + "] SET ";
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
 
@@ -708,9 +712,11 @@ namespace dbRad
 
             //Get configured Application database
             string appDbName = Config.applicationlDb.Name;
-            this.Title = appDbName;
+            string userName = Config.applicationUser.UserName;
+            string userPassword = Config.applicationUser.UserPassword;
+            this.Title = "Application = " + appDbName + " | User = " + userName;
 
-            //Build Main Menu
+           //Build Main Menu
 
             //A File Menu
             MenuItem fileMenu = new MenuItem();
@@ -739,20 +745,22 @@ namespace dbRad
             openMenu.Header = "Open";
             this.menu.Items.Add(openMenu);
 
-            //Open Menu Items are Dynamicly populated with table names in control.ApplicationTable;
+            //Open Menu Items are Dynamicly populated with schema/table names in control tables;
 
             SqlCommand getSchList = new SqlCommand();
             getSchList.CommandText =
-                  @"SELECT aps.ApplicationSchemaId,
-                           s.SchemaName
-                    FROM ApplicationSchema aps
-                         INNER JOIN [Schema] s ON s.SchemaId = aps.SchemaId
-                         INNER JOIN Application a ON a.ApplicationId = aps.ApplicationId
-                    WHERE a.ApplicationName = @appDbName
-                    ORDER BY s.SchemaName";
+                  @"SELECT DISTINCT ApplicationSchemaId,
+                           SchemaName
+                    FROM directory.UserObjectPermisions
+                    WHERE ApplicationName = @appDbName
+                      AND UserName = @UserName
+                      AND UserPassword = @UserPassword
+                    ORDER BY SchemaName";
 
             getSchList.CommandType = CommandType.Text;
             getSchList.Parameters.AddWithValue("@appDbName", appDbName);
+            getSchList.Parameters.AddWithValue("@UserName", userName);
+            getSchList.Parameters.AddWithValue("@UserPassword", userPassword);
             getSchList.Connection = ctrlSchDbCon;
             ctrlSchDbCon.Open();
 
@@ -767,20 +775,24 @@ namespace dbRad
                     schemaOpen.Header = schName;
                     openMenu.Items.Add(schemaOpen);
                     SqlCommand getTabList = new SqlCommand();
-
-
+                    
                     getTabList.CommandText =
-                          @"SELECT t.ApplicationTableId,
-                            t.TableLabel
-                    FROM ApplicationTable t
-                            INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId
-                    WHERE apps.ApplicationSchemaId = @ApplicationSchemaId
-                    ORDER BY t.TableName";
+                  @"SELECT ApplicationTableId,
+                            TableLabel
+                    FROM directory.UserObjectPermisions
+                    WHERE ApplicationName = @appDbName
+                      AND UserName = @UserName
+                      AND UserPassword = @UserPassword
+                      AND ApplicationSchemaId = @ApplicationSchemaId
+                    ORDER BY TableName";
+
                     getTabList.CommandType = CommandType.Text;
 
                     getTabList.Connection = ctrlTabDbCon;
                     ctrlTabDbCon.Open();
-
+                    getTabList.Parameters.AddWithValue("@appDbName", appDbName);
+                    getTabList.Parameters.AddWithValue("@UserName", userName);
+                    getTabList.Parameters.AddWithValue("@UserPassword", userPassword);
                     getTabList.Parameters.AddWithValue("@ApplicationSchemaId", schId);
                     SqlDataReader tabReader = getTabList.ExecuteReader();
                     while (tabReader.Read())

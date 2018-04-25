@@ -72,9 +72,10 @@
       <DependentUpon>Config.xaml</DependentUpon>
     </Compile>
     <Compile Include="Connections.cs" />
+    <Compile Include="Encrypt.cs" />
     <Compile Include="Env.cs" />
     <Compile Include="Filetasks.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="User.cs" />
     <Compile Include="WindowTasks.cs" />
     <Page Include="Config.xaml">
       <SubType>Designer</SubType>
