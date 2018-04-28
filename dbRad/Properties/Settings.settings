@@ -1,24 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="dbRad.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
   <Profiles />
-  <Settings>
-    <Setting Name="applicationName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">wsac</Value>
-    </Setting>
-    <Setting Name="applicationHostName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">wsac.talapajar.com</Value>
-    </Setting>
-    <Setting Name="controlerUserName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">sa</Value>
-    </Setting>
-    <Setting Name="controlerHostName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">wsac.talapajar.com</Value>
-    </Setting>
-    <Setting Name="applicationUserName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">sa</Value>
-    </Setting>
-    <Setting Name="ControlerName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Control</Value>
-    </Setting>
-  </Settings>
+  <Settings />
 </SettingsFile>

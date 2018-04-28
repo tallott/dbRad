@@ -66,11 +66,11 @@ namespace dbRad
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
             });
-            
+
             tabControl.Items.Add(settingstab);
-            tabControl.Items.Add(controlDbtab);
             tabControl.Items.Add(applicationDbtab);
-            
+            tabControl.Items.Add(controlDbtab);
+
             RowDefinition row1 = new RowDefinition();
             row1.Height = GridLength.Auto;
 
@@ -123,8 +123,26 @@ namespace dbRad
 
             });
 
+            Button buttonCancel = new Button();
+            buttonCancel.Name = "btnCancel";
+            buttonCancel.Content = "Cancel";
+            buttonCancel.Style = FindStyle("winButtonStyle");
+            buttonCancel.Click += new RoutedEventHandler((s, e) =>
+            {
+                if (Config.controlDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
+                {
+                    WindowTasks.appShutdown(s, e);
+                }
+                else
+                {
+                    WindowTasks.winClose(s, e);
+                }
+
+            });
+
             buttonStackPanel.Children.Add(buttonSave);
             buttonStackPanel.Children.Add(buttonClose);
+            buttonStackPanel.Children.Add(buttonCancel);
 
             Grid.SetRow(controlDbStackPanel, 0);
             mainGrid.Children.Add(tabControl);

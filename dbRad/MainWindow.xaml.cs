@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-
+using System.Reflection;
 
 namespace dbRad
 {
@@ -20,6 +20,7 @@ namespace dbRad
         public MainWindow()
         {
             InitializeComponent();
+            this.Hide();
             appStartup();
 
 
@@ -50,11 +51,6 @@ namespace dbRad
 
         }
 
-        private void appShutdown(object sender, EventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
         private void numberValidationTextBox(object sender, TextCompositionEventArgs e)
         //Makes sure users can only enter numerics
         {
@@ -80,19 +76,29 @@ namespace dbRad
             string sqlParam = tabId;
 
             //Single row to return user defined DML SQL for DataGrid
-            sqlPart = "SELECT TOP 1 Dml from ApplicationTable WHERE ApplicationTableId = @sqlParam";
+            sqlPart =
+              @"SELECT TOP 1 Dml
+                FROM metadata.ApplicationTable
+                WHERE ApplicationTableId = @sqlParam";
 
             string sqlTxt = dataGridGetBaseSql(sqlPart, sqlParam);
 
             //Append filter where clause to the end of DML
             if (selectedFilter == 0) //Default filter selected
             {
-                sqlPart = "SELECT FilterDefinition FROM ApplicationFilter WHERE ApplicationTableId = @sqlparam AND SortOrder = 1";
+                sqlPart =
+                  @"SELECT FilterDefinition
+                    FROM metadata.ApplicationFilter
+                    WHERE ApplicationTableId = @sqlparam
+                            AND SortOrder = 1";
             }
             else //Custom filter selected
             {
                 sqlParam = selectedFilter.ToString();
-                sqlPart = "SELECT FilterDefinition FROM ApplicationFilter WHERE ApplicationFilterId = @sqlparam";
+                sqlPart =
+                  @"SELECT FilterDefinition
+                    FROM metadata.ApplicationFilter
+                    WHERE ApplicationFilterId = @sqlparam";
             }
 
             string fltTxt = dataGridGetBaseSql(sqlPart, sqlParam);
@@ -714,9 +720,10 @@ namespace dbRad
             string appDbName = Config.applicationlDb.Name;
             string userName = Config.applicationUser.UserName;
             string userPassword = Config.applicationUser.UserPassword;
-            this.Title = "Application = " + appDbName + " | User = " + userName;
+            string version = "1.0.0";
+            this.Title = "Application = " + appDbName + " | User = " + userName + " | Version:" + version;
 
-           //Build Main Menu
+            //Build Main Menu
 
             //A File Menu
             MenuItem fileMenu = new MenuItem();
@@ -726,7 +733,7 @@ namespace dbRad
             //Item 1 Exit
             MenuItem fileExitItem = new MenuItem();
             fileExitItem.Header = "Exit";
-            fileExitItem.Click += new RoutedEventHandler(appShutdown);
+            fileExitItem.Click += new RoutedEventHandler(WindowTasks.appShutdown);
             fileMenu.Items.Add(fileExitItem);
 
             //A config Menu
@@ -762,55 +769,66 @@ namespace dbRad
             getSchList.Parameters.AddWithValue("@UserName", userName);
             getSchList.Parameters.AddWithValue("@UserPassword", userPassword);
             getSchList.Connection = ctrlSchDbCon;
-            ctrlSchDbCon.Open();
-
+            try
             {
-                SqlDataReader schReader = getSchList.ExecuteReader();
+                ctrlSchDbCon.Open();
 
-                while (schReader.Read())
                 {
-                    string schId = schReader["ApplicationSchemaId"].ToString();
-                    string schName = schReader["SchemaName"].ToString();
-                    MenuItem schemaOpen = new MenuItem();
-                    schemaOpen.Header = schName;
-                    openMenu.Items.Add(schemaOpen);
-                    SqlCommand getTabList = new SqlCommand();
-                    
-                    getTabList.CommandText =
-                  @"SELECT ApplicationTableId,
+                    SqlDataReader schReader = getSchList.ExecuteReader();
+
+                    while (schReader.Read())
+                    {
+                        string schId = schReader["ApplicationSchemaId"].ToString();
+                        string schName = schReader["SchemaName"].ToString();
+                        MenuItem schemaOpen = new MenuItem();
+                        schemaOpen.Header = schName;
+                        openMenu.Items.Add(schemaOpen);
+                        SqlCommand getTabList = new SqlCommand();
+
+                        getTabList.CommandText =
+                      @"SELECT DISTINCT ApplicationTableId,
                             TableLabel
                     FROM directory.UserObjectPermisions
                     WHERE ApplicationName = @appDbName
                       AND UserName = @UserName
                       AND UserPassword = @UserPassword
                       AND ApplicationSchemaId = @ApplicationSchemaId
-                    ORDER BY TableName";
+                    ORDER BY TableLabel";
 
-                    getTabList.CommandType = CommandType.Text;
+                        getTabList.CommandType = CommandType.Text;
 
-                    getTabList.Connection = ctrlTabDbCon;
-                    ctrlTabDbCon.Open();
-                    getTabList.Parameters.AddWithValue("@appDbName", appDbName);
-                    getTabList.Parameters.AddWithValue("@UserName", userName);
-                    getTabList.Parameters.AddWithValue("@UserPassword", userPassword);
-                    getTabList.Parameters.AddWithValue("@ApplicationSchemaId", schId);
-                    SqlDataReader tabReader = getTabList.ExecuteReader();
-                    while (tabReader.Read())
-                    {
-                        string tabId = tabReader["ApplicationTableId"].ToString();
-                        string tabLable = tabReader["TableLabel"].ToString();
-                        MenuItem schemaOpenItem = new MenuItem();
-                        schemaOpenItem.Header = tabLable;
-                        schemaOpenItem.Click += new RoutedEventHandler((s, e) => { winConstruct(tabId); });
+                        getTabList.Connection = ctrlTabDbCon;
+                        ctrlTabDbCon.Open();
+                        getTabList.Parameters.AddWithValue("@appDbName", appDbName);
+                        getTabList.Parameters.AddWithValue("@UserName", userName);
+                        getTabList.Parameters.AddWithValue("@UserPassword", userPassword);
+                        getTabList.Parameters.AddWithValue("@ApplicationSchemaId", schId);
+                        SqlDataReader tabReader = getTabList.ExecuteReader();
+                        while (tabReader.Read())
+                        {
+                            string tabId = tabReader["ApplicationTableId"].ToString();
+                            string tabLable = tabReader["TableLabel"].ToString();
+                            MenuItem schemaOpenItem = new MenuItem();
+                            schemaOpenItem.Header = tabLable;
+                            schemaOpenItem.Click += new RoutedEventHandler((s, e) => { winConstruct(tabId); });
 
-                        schemaOpen.Items.Add(schemaOpenItem);
+                            schemaOpen.Items.Add(schemaOpenItem);
+                        };
+                        ctrlTabDbCon.Close();
                     };
-                    ctrlTabDbCon.Close();
-                };
 
+                }
+
+                ctrlSchDbCon.Close();
             }
-
-            ctrlSchDbCon.Close();
+            catch (Exception ex)
+            {
+                MessageBox.Show("Cannot Open connection:" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ctrlSchDbCon.Close();
+                Window config = new Config();
+                config.Show();
+            };
+            this.Show();
         }
 
         private void winGetControlValue(ComboBox cb, Dictionary<string, string> controlValues)
@@ -995,7 +1013,12 @@ namespace dbRad
             //Populate Data tables
             //Window Filter - Gets the list of filters for the window based on the underlying database table
             SqlCommand getFltRows = new SqlCommand();
-            getFltRows.CommandText = "SELECT ApplicationFilterId as valueMember, FilterName as displayMember FROM ApplicationFilter WHERE ApplicationTableId =  @tabId ORDER BY SortOrder";
+            getFltRows.CommandText =
+                @"SELECT ApplicationFilterId AS valueMember,
+                        FilterName AS displayMember
+                FROM metadata.ApplicationFilter
+                WHERE ApplicationTableId = @tabId
+                ORDER BY SortOrder";
 
             getFltRows.Parameters.AddWithValue("@tabId", tabId);
             getFltRows.CommandType = CommandType.Text;
@@ -1017,7 +1040,16 @@ namespace dbRad
 
             //Add controls to the window editing area Stack panel based on underlying database columns
             SqlCommand getColList = new SqlCommand();
-            getColList.CommandText = "SELECT c.ColumnName, ISNULL(c.ColumnLable,c.ColumnName) AS ColumnLabel, c.RowSource, ct.WindowControlType, c.WindowControlEnabled FROM ApplicationColumn c INNER JOIN WindowControlType ct on c.WindowControlTypeId = ct.WindowControlTypeId WHERE ApplicationTableId =  @tabId ORDER BY c.WindowLayoutOrder";
+            getColList.CommandText =
+                  @"SELECT c.ColumnName,
+                           ISNULL(c.ColumnLable, c.ColumnName) AS ColumnLabel,
+                           c.RowSource,
+                           ct.WindowControlType,
+                           c.WindowControlEnabled
+                    FROM metadata.ApplicationColumn c
+                         INNER JOIN metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
+                    WHERE ApplicationTableId = @tabId
+                    ORDER BY c.WindowLayoutOrder";
 
             getColList.Parameters.AddWithValue("@tabId", tabId);
             getColList.CommandType = CommandType.Text;

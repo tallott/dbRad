@@ -8,11 +8,11 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("dbRad")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Database Rapid Application Developement")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("talapajar")]
 [assembly: AssemblyProduct("dbRad")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCopyright("Copyright  ©  2018, talapajar")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -6,7 +6,7 @@ namespace dbRad
         private string _HostName = string.Empty;
         private string _Name = string.Empty;
         private string _UserName = string.Empty;
-        private string _UserPassword = "Pakula01";
+        private string _UserPassword = "bv7gnE9AAL7g'kce8x)SHRf8!`Q&cd]3";
 
         public string HostName
         {

@@ -12,18 +12,26 @@ namespace dbRad
 {
     public partial class WindowTasks
     {
-      public  static List<string> winMetadataList(string tabId)
+        public static List<string> winMetadataList(string tabId)
         //Returns the list of metadata values for a window
         {
             SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
             List<string> listRange = new List<string>();
-       
+
             //get the table string values
-            SqlCommand getTab = new SqlCommand
-            {
-                CommandText = "SELECT t.TableName,t.TableLabel,s.SchemaName,t.TableKey FROM ApplicationTable t INNER JOIN ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId INNER JOIN[Schema] s on apps.SchemaId = s.SchemaId WHERE ApplicationTableId = @tabId",
-                CommandType = CommandType.Text
-            };
+            SqlCommand getTab = new SqlCommand();
+
+            getTab.CommandText =
+              @"SELECT t.TableName,
+                       t.TableLabel,
+                                s.SchemaName,
+                                t.TableKey
+                FROM metadata.ApplicationTable t
+                     INNER JOIN metadata.ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId
+                     INNER JOIN metadata.[Schema] s ON apps.SchemaId = s.SchemaId
+                WHERE ApplicationTableId = @tabId";
+
+            getTab.CommandType = CommandType.Text;
             getTab.Parameters.AddWithValue("@tabId", tabId);
             getTab.Connection = ctrlDbCon;
             ctrlDbCon.Open();
@@ -46,7 +54,10 @@ namespace dbRad
             Window w = Window.GetWindow(clicked);
             w.Close();
         }
-
+        public static void appShutdown(object sender, EventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
         public static void winSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear)
         //Sets the various mode for the winow
         {
