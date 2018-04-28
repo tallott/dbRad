@@ -688,7 +688,7 @@ namespace dbRad
                 //Delete the selected row from db
 
                 SqlCommand delRowSql = new SqlCommand();
-                delRowSql.CommandText = "DELETE FROM " + tabSchema + "." + tabName + " WHERE " + tabKey + " = @Id";
+                delRowSql.CommandText = "DELETE FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
                 delRowSql.Parameters.AddWithValue("@Id", id);
                 delRowSql.CommandType = CommandType.Text;
                 delRowSql.Connection = appDbCon;
