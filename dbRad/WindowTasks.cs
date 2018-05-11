@@ -24,8 +24,9 @@ namespace dbRad
             getTab.CommandText =
               @"SELECT t.TableName,
                        t.TableLabel,
-                                s.SchemaName,
-                                t.TableKey
+                       s.SchemaName,
+                       s.SchemaLabel,
+                       t.TableKey
                 FROM metadata.ApplicationTable t
                      INNER JOIN metadata.ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId
                      INNER JOIN metadata.[Schema] s ON apps.SchemaId = s.SchemaId
@@ -39,11 +40,12 @@ namespace dbRad
             SqlDataReader getTabReader = getTab.ExecuteReader();
             getTabReader.Read();
 
+            listRange.Add(getTabReader["TableKey"].ToString());
             listRange.Add(getTabReader["TableName"].ToString());
             listRange.Add(getTabReader["TableLabel"].ToString());
             listRange.Add(getTabReader["SchemaName"].ToString());
-            listRange.Add(getTabReader["TableKey"].ToString());
-
+            listRange.Add(getTabReader["SchemaLabel"].ToString());
+            
             ctrlDbCon.Close();
             return listRange;
 

@@ -153,8 +153,8 @@ namespace dbRad
                         winDg.ItemsSource = winDt.DefaultView;
 
                         //set the page counter
-                        string tabSchema = WindowTasks.winMetadataList(tabId)[2];
-                        string tabName = WindowTasks.winMetadataList(tabId)[0];
+                        string tabSchema = WindowTasks.winMetadataList(tabId)[3];
+                        string tabName = WindowTasks.winMetadataList(tabId)[1];
                         int rowCount = 0;
 
                         int chrStart = sqlCountText.IndexOf("SELECT") + 6;
@@ -435,14 +435,12 @@ namespace dbRad
         {
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-            string tabSchema = WindowTasks.winMetadataList(tabId)[2];
-            string tabName = WindowTasks.winMetadataList(tabId)[0];
-            string tabKey = WindowTasks.winMetadataList(tabId)[3];
+            string tabSchema = WindowTasks.winMetadataList(tabId)[3];
+            string tabName = WindowTasks.winMetadataList(tabId)[1];
+            string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
             DataTable winSelectedRowDataTable = new DataTable();
-
-
-
+                        
             SqlCommand winSelectedRowSql = new SqlCommand();
             winSelectedRowSql.CommandText = "SELECT * FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
             winSelectedRowSql.Parameters.AddWithValue("@Id", id);
@@ -473,11 +471,10 @@ namespace dbRad
             {
                 SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-                string tabSchema = WindowTasks.winMetadataList(tabId)[2];
-                string tabName = WindowTasks.winMetadataList(tabId)[0];
-                string tabKey = WindowTasks.winMetadataList(tabId)[3];
-
-
+                string tabSchema = WindowTasks.winMetadataList(tabId)[3];
+                string tabName = WindowTasks.winMetadataList(tabId)[1];
+                string tabKey = WindowTasks.winMetadataList(tabId)[0];
+                
                 List<string> columns = new List<string>();
                 List<string> columnUpdates = new List<string>();
 
@@ -487,6 +484,7 @@ namespace dbRad
                     {
 
                         string ctlType = element.GetType().Name;
+                        // MessageBox.Show(element.Name);
                         switch (ctlType)
                         {
                             case "TextBox":
@@ -531,9 +529,7 @@ namespace dbRad
                 dbCreateRecordSql.Connection = appDbCon;
 
                 appDbCon.Open();
-
                 dbCreateRecordSql.ExecuteNonQuery();
-
                 appDbCon.Close();
 
                 dbGetDataGridRows(winNew, tabId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
@@ -549,11 +545,10 @@ namespace dbRad
         //updates the database with values in the data edit fields
         {
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
-
-
-            string tabSchema = WindowTasks.winMetadataList(tabId)[2];
-            string tabName = WindowTasks.winMetadataList(tabId)[0];
-            string tabKey = WindowTasks.winMetadataList(tabId)[3];
+            
+            string tabSchema = WindowTasks.winMetadataList(tabId)[3];
+            string tabName = WindowTasks.winMetadataList(tabId)[1];
+            string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
             try
             {
@@ -631,7 +626,7 @@ namespace dbRad
                     if (isDirty)
                     { //Update the selected record in database
 
-                        sql = sql.Trim(',', ' ') + " WHERE " + tabKey + " = @Id"; ;
+                        sql = sql.Trim(',', ' ') + " WHERE " + tabKey + " = @Id";
 
                         SqlCommand listItemSaveSql = new SqlCommand();
                         listItemSaveSql.CommandText = sql;
@@ -640,15 +635,7 @@ namespace dbRad
                         listItemSaveSql.Connection = appDbCon;
 
                         appDbCon.Open();
-                        try
-                        {
-                            listItemSaveSql.ExecuteNonQuery();
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show("Error in SQL" + sql + ";  " + ex.Message + ex.StackTrace, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        }
-
+                        listItemSaveSql.ExecuteNonQuery();
                         appDbCon.Close();
 
                         dbGetDataGridRows(winNew, tabId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
@@ -677,9 +664,9 @@ namespace dbRad
         {
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-            string tabSchema = WindowTasks.winMetadataList(tabId)[2];
-            string tabName = WindowTasks.winMetadataList(tabId)[0];
-            string tabKey = WindowTasks.winMetadataList(tabId)[3];
+            string tabSchema = WindowTasks.winMetadataList(tabId)[3];
+            string tabName = WindowTasks.winMetadataList(tabId)[1];
+            string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
             try
             {
@@ -757,12 +744,12 @@ namespace dbRad
             SqlCommand getSchList = new SqlCommand();
             getSchList.CommandText =
                   @"SELECT DISTINCT ApplicationSchemaId,
-                           SchemaName
+                           SchemaLabel
                     FROM directory.UserObjectPermisions
                     WHERE ApplicationName = @appDbName
                       AND UserName = @UserName
                       AND UserPassword = @UserPassword
-                    ORDER BY SchemaName";
+                    ORDER BY SchemaLabel";
 
             getSchList.CommandType = CommandType.Text;
             getSchList.Parameters.AddWithValue("@appDbName", appDbName);
@@ -779,7 +766,7 @@ namespace dbRad
                     while (schReader.Read())
                     {
                         string schId = schReader["ApplicationSchemaId"].ToString();
-                        string schName = schReader["SchemaName"].ToString();
+                        string schName = schReader["SchemaLabel"].ToString();
                         MenuItem schemaOpen = new MenuItem();
                         schemaOpen.Header = schName;
                         openMenu.Items.Add(schemaOpen);
@@ -878,10 +865,10 @@ namespace dbRad
             Dictionary<string, string> controlValues = new Dictionary<string, string>();
             Int32 seletedFilter = 0;
 
-            string tabName = WindowTasks.winMetadataList(tabId)[0];
-            string tableLabel = WindowTasks.winMetadataList(tabId)[1];
-            string tableSchema = WindowTasks.winMetadataList(tabId)[2];
-            string TableKey = WindowTasks.winMetadataList(tabId)[3];
+            string tabName = WindowTasks.winMetadataList(tabId)[1];
+            string tableLabel = WindowTasks.winMetadataList(tabId)[2];
+            string tableSchema = WindowTasks.winMetadataList(tabId)[3];
+            string TableKey = WindowTasks.winMetadataList(tabId)[0];
 
             //Create a new window - this is a window based on an underlying database table
             Window winNew = new Window();
