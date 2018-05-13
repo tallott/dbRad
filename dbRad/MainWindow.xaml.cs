@@ -169,6 +169,7 @@ namespace dbRad
                         string pageCount = Convert.ToString((rowCount / pageSize) + 1);
                         string pageNumber = Convert.ToString((offSet / pageSize) + 1);
 
+
                         tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
                         //Define the grid columns
 
@@ -440,7 +441,7 @@ namespace dbRad
             string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
             DataTable winSelectedRowDataTable = new DataTable();
-                        
+
             SqlCommand winSelectedRowSql = new SqlCommand();
             winSelectedRowSql.CommandText = "SELECT * FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
             winSelectedRowSql.Parameters.AddWithValue("@Id", id);
@@ -474,7 +475,7 @@ namespace dbRad
                 string tabSchema = WindowTasks.winMetadataList(tabId)[3];
                 string tabName = WindowTasks.winMetadataList(tabId)[1];
                 string tabKey = WindowTasks.winMetadataList(tabId)[0];
-                
+
                 List<string> columns = new List<string>();
                 List<string> columnUpdates = new List<string>();
 
@@ -545,7 +546,7 @@ namespace dbRad
         //updates the database with values in the data edit fields
         {
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
-            
+
             string tabSchema = WindowTasks.winMetadataList(tabId)[3];
             string tabName = WindowTasks.winMetadataList(tabId)[1];
             string tabKey = WindowTasks.winMetadataList(tabId)[0];

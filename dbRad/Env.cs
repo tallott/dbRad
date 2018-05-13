@@ -1,45 +1,64 @@
 ﻿using System;
+using System.Reflection;
 
 namespace dbRad
 {
-  public partial  class Env
+    public partial class Env
     {
         public static string ControlDbFilePath()
         {
             string FileName;
-            FileName = ApplicationDirectory() + "ControlDb.xml";
+            FileName = UserApplicationDirectory() + "ControlDb.xml";
 
             return FileName;
         }
         public static string ApplicationDbFilePath()
         {
             string FileName;
-            FileName = ApplicationDirectory() + "ApplicationDb.xml";
+            FileName = UserApplicationDirectory() + "ApplicationDb.xml";
 
             return FileName;
         }
         public static string UserFilePath()
         {
-            string FileName;
-            FileName = ApplicationDirectory() + "User.xml";
+            string UserFilePath;
+            UserFilePath = UserApplicationDirectory() + "User.xml";
 
-            return FileName;
+            return UserFilePath;
         }
-        public static string ApplicationDirectory()
+        public static string UserApplicationDirectory()
         {
             string Directory = null;
 
-            Directory = AppDomain.CurrentDomain.RelativeSearchPath;
+            Directory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            if (Directory == null)
-            {
-                Directory = AppDomain.CurrentDomain.BaseDirectory;
-            }
-
+            EnsureDirSlash(ref Directory);
+            Directory += AssemblyName();
             EnsureDirSlash(ref Directory);
 
             return Directory;
         }
+        public static string AssemblyName()
+        {
+            string AssemblyName = null;
+            AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+            return AssemblyName;
+        }
+        //public static string ApplicationDirectory()
+        //{
+        //    string Directory = null;
+
+        //    Directory = AppDomain.CurrentDomain.RelativeSearchPath;
+
+        //    if (Directory == null)
+        //    {
+        //        Directory = AppDomain.CurrentDomain.BaseDirectory;
+        //    }
+
+        //    EnsureDirSlash(ref Directory);
+
+        //    return Directory;
+        //}
 
         public static void EnsureDirSlash(ref String Directory)
         {

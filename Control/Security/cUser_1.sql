@@ -1,0 +1,3 @@
+﻿CREATE LOGIN [cUser]
+    WITH PASSWORD = N'qpwbM$moliqhhtpKUfjjjt{hmsFT7_&#$!~<RaaLDqokqugf', SID = 0xC7B525A57753FE4883C61B08A523D9CE, DEFAULT_LANGUAGE = [us_english], CHECK_POLICY = OFF;
+

@@ -155,7 +155,7 @@
             "SourcePath" = "8:Files\\User.xml"
             "TargetName" = "8:User.xml"
             "Tag" = "8:"
-            "Folder" = "8:_B0492047B384410B9B11AAB8880D056A"
+            "Folder" = "8:_7024184D8CBE4974BB76114E313E303C"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -175,7 +175,7 @@
             "SourcePath" = "8:Files\\ControlDb.xml"
             "TargetName" = "8:ControlDb.xml"
             "Tag" = "8:"
-            "Folder" = "8:_B0492047B384410B9B11AAB8880D056A"
+            "Folder" = "8:_7024184D8CBE4974BB76114E313E303C"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -195,7 +195,7 @@
             "SourcePath" = "8:Files\\ApplicationDb.xml"
             "TargetName" = "8:ApplicationDb.xml"
             "Tag" = "8:"
-            "Folder" = "8:_B0492047B384410B9B11AAB8880D056A"
+            "Folder" = "8:_7024184D8CBE4974BB76114E313E303C"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -269,17 +269,6 @@
                     }
                 }
             }
-            "{1525181F-901A-416C-8A58-119130FE478E}:_2FC99DE5716A4280A7D83A8543CD5CA7"
-            {
-            "Name" = "8:#1916"
-            "AlwaysCreate" = "11:FALSE"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Property" = "8:DesktopFolder"
-                "Folders"
-                {
-                }
-            }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_B0492047B384410B9B11AAB8880D056A"
             {
             "DefaultLocation" = "8:[ProgramFilesFolder][ProductName]"
@@ -290,6 +279,28 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
+                }
+            }
+            "{1525181F-901A-416C-8A58-119130FE478E}:_CF8A49204D5945EA87F92F54694E3D81"
+            {
+            "Name" = "8:#1915"
+            "AlwaysCreate" = "11:TRUE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Property" = "8:AppDataFolder"
+                "Folders"
+                {
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_7024184D8CBE4974BB76114E313E303C"
+                    {
+                    "Name" = "8:DbRad"
+                    "AlwaysCreate" = "11:TRUE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_B65F07CBF2F840EBADC945A858D3E934"
+                        "Folders"
+                        {
+                        }
+                    }
                 }
             }
         }
@@ -308,15 +319,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DbRad"
-        "ProductCode" = "8:{DE77CC27-C33A-4554-B3D2-93F929934FD9}"
-        "PackageCode" = "8:{B008446C-9E93-4C5F-8985-F758383762D7}"
+        "ProductCode" = "8:{7B71E669-CF54-4136-9C5A-BCFE51B64C42}"
+        "PackageCode" = "8:{393A8854-5B7C-4B54-AC21-54240EAAC343}"
         "UpgradeCode" = "8:{85F03C1B-19CE-46E2-AED5-1EB3470F571B}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
-        "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.1"
+        "InstallAllUsers" = "11:FALSE"
+        "ProductVersion" = "8:1.0.0"
         "Manufacturer" = "8:talapajar"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
