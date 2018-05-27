@@ -45,7 +45,7 @@ namespace dbRad
             listRange.Add(getTabReader["TableLabel"].ToString());
             listRange.Add(getTabReader["SchemaName"].ToString());
             listRange.Add(getTabReader["SchemaLabel"].ToString());
-            
+
             ctrlDbCon.Close();
             return listRange;
 
@@ -109,6 +109,12 @@ namespace dbRad
                 }
             }
 
+        }
+
+
+        public static void DisplayError(Exception ex, string msg, string debug)
+        {
+            MessageBox.Show(msg + "\r\n\nDev Message\r\n" + debug + "\r\n\nException Message" + ex.Message + "\r\n\nStack Trace" + ex.StackTrace, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

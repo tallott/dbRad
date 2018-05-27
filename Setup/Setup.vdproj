@@ -217,11 +217,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_FCE4DFCF63CFBCA2230D753206C7C457"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -319,15 +314,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DbRad"
-        "ProductCode" = "8:{7B71E669-CF54-4136-9C5A-BCFE51B64C42}"
-        "PackageCode" = "8:{393A8854-5B7C-4B54-AC21-54240EAAC343}"
+        "ProductCode" = "8:{B4B5BD1F-CC20-4B6A-A9D1-0FFBA9F98A60}"
+        "PackageCode" = "8:{42B351F0-3604-4C47-BCE6-E32426A14D64}"
         "UpgradeCode" = "8:{85F03C1B-19CE-46E2-AED5-1EB3470F571B}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.0.1"
         "Manufacturer" = "8:talapajar"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

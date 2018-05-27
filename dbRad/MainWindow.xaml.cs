@@ -179,7 +179,7 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("ERROR in Filter SQL: (" + sqlTxt + ") :" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "ERROR in Filter SQL:" + ex.Message, sqlTxt);
                 appDbCon.Close();
             }
         }
@@ -228,7 +228,7 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Problem Selecting the DataGrid Row :" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "Problem Selecting the DataGrid Row:", null);
             }
         }
 
@@ -260,7 +260,7 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Problem Loading data:" + ex.Message + ex.StackTrace, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "Problem Loading Data Grid:", null);
             }
         }
 
@@ -362,7 +362,7 @@ namespace dbRad
 
             catch (Exception ex)
             {
-                MessageBox.Show("Problem Loading the data row :" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "Problem Loading the data row:", null);
             }
 
 
@@ -440,10 +440,12 @@ namespace dbRad
             string tabName = WindowTasks.winMetadataList(tabId)[1];
             string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
+            string sql = "SELECT * FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
+
             DataTable winSelectedRowDataTable = new DataTable();
 
             SqlCommand winSelectedRowSql = new SqlCommand();
-            winSelectedRowSql.CommandText = "SELECT * FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
+            winSelectedRowSql.CommandText = sql;
             winSelectedRowSql.Parameters.AddWithValue("@Id", id);
             winSelectedRowSql.CommandType = CommandType.Text;
             winSelectedRowSql.Connection = appDbCon;
@@ -456,9 +458,9 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Problem Loading data grid row:" + winSelectedRowSql + ":" + ex.Message + ex.StackTrace, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "Problem Loading data grid row:" + ex.Message, sql);
+                appDbCon.Close();
             }
-        ;
 
             appDbCon.Close();
             return winSelectedRowDataTable;
@@ -468,16 +470,20 @@ namespace dbRad
         private void dbCreateRecord(Window winNew, String tabId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Creates a new record in the db
         {
+
+            string tabSchema = WindowTasks.winMetadataList(tabId)[3];
+            string tabName = WindowTasks.winMetadataList(tabId)[1];
+            string tabKey = WindowTasks.winMetadataList(tabId)[0];
+
+            List<string> columns = new List<string>();
+            List<string> columnUpdates = new List<string>();
+
+            string sql = string.Empty;
+            SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
             try
             {
-                SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
 
-                string tabSchema = WindowTasks.winMetadataList(tabId)[3];
-                string tabName = WindowTasks.winMetadataList(tabId)[1];
-                string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
-                List<string> columns = new List<string>();
-                List<string> columnUpdates = new List<string>();
 
                 foreach (FrameworkElement element in editStkPnl.Children)
                 {
@@ -522,7 +528,7 @@ namespace dbRad
                 }
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                string sql = "INSERT INTO " + tabSchema + ".[" + tabName + "]" + csvColumns + csvColumnUpdates;
+                sql = "INSERT INTO " + tabSchema + ".[" + tabName + "]" + csvColumns + csvColumnUpdates;
 
                 SqlCommand dbCreateRecordSql = new SqlCommand();
                 dbCreateRecordSql.CommandText = sql;
@@ -538,7 +544,8 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Cannot Insert Record:" + ex.Message + ex.StackTrace, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "Cannot Delete Record:" + ex.Message, sql);
+                appDbCon.Close();
             }
         }
 
@@ -551,6 +558,8 @@ namespace dbRad
             string tabName = WindowTasks.winMetadataList(tabId)[1];
             string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
+            string sql = string.Empty;
+
             try
             {
                 string id = dataGridGetId(winDg);
@@ -561,7 +570,7 @@ namespace dbRad
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
-                    string sql = "UPDATE " + tabSchema + ".[" + tabName + "] SET ";
+                    sql = "UPDATE " + tabSchema + ".[" + tabName + "] SET ";
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
 
@@ -654,8 +663,7 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Cannot Save Record:" + ex.Message + ex.StackTrace, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-
+                WindowTasks.DisplayError(ex, "Cannot Save Record:" + ex.Message, sql);
                 appDbCon.Close();
             };
         }
@@ -669,14 +677,17 @@ namespace dbRad
             string tabName = WindowTasks.winMetadataList(tabId)[1];
             string tabKey = WindowTasks.winMetadataList(tabId)[0];
 
+            string sql = string.Empty;
             try
             {
                 string id = dataGridGetId(winDg);
                 DataTable winSelectedRowDataTable = dbGetDataRow(tabId, id, editStkPnl);
                 //Delete the selected row from db
 
+                sql = "DELETE FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
+
                 SqlCommand delRowSql = new SqlCommand();
-                delRowSql.CommandText = "DELETE FROM " + tabSchema + ".[" + tabName + "] WHERE " + tabKey + " = @Id";
+                delRowSql.CommandText = sql;
                 delRowSql.Parameters.AddWithValue("@Id", id);
                 delRowSql.CommandType = CommandType.Text;
                 delRowSql.Connection = appDbCon;
@@ -692,7 +703,7 @@ namespace dbRad
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Cannot Delete Record:" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                WindowTasks.DisplayError(ex, "Cannot Delete Record:" + ex.Message, sql);
                 appDbCon.Close();
             };
         }
