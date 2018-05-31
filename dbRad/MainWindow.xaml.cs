@@ -307,17 +307,22 @@ namespace dbRad
         //Loads the data editing UI with the values from the row in winSelectedRowDataTable 
         {
             //Loop the Row (Filtered by @Id) and columns of the underlying dataset
+            string rowCol = null;
+            string columnName = null;
             try
             {
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
+
+
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
                         //Set the value of the control col.Name in the window to the value returned by row[col]
-
+                        rowCol = row[col].ToString();
+                        columnName = col.ColumnName;
                         //Determine the Type of control
-                        object obj = editStkPnl.FindName(col.ColumnName);
+                        object obj = editStkPnl.FindName(columnName);
 
                         string ctlType = obj.GetType().Name;
                         //Use Type to work out how to process value;
@@ -325,44 +330,48 @@ namespace dbRad
                         switch (ctlType)
                         {
                             case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(col.ColumnName);
-                                tb.Text = row[col].ToString();
+                                TextBox tb = (TextBox)editStkPnl.FindName(columnName);
+                                tb.Text = rowCol;
                                 break;
 
                             case "ComboBox":
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
-                                cb.SelectedValue = row[col].ToString();
-                                //We set this here because there is no change event we can trigger on a combo box
-                                winGetControlValue(cb, controlValues);
-
+                                ComboBox cb = (ComboBox)editStkPnl.FindName(columnName);
+                                if (rowCol != "")
+                                {
+                                    cb.SelectedValue = rowCol;
+                                    //We set this here because there is no change event we can trigger on a combo box
+                                    winGetControlValue(cb, controlValues);
+                                }
+                                else if (rowCol == "")
+                                {
+                                    cb.SelectedValue = null;
+                                }
                                 break;
 
                             case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(col.ColumnName);
-                                if (row[col].ToString() != "")
+                                DatePicker dtp = (DatePicker)editStkPnl.FindName(columnName);
+                                if (rowCol != "")
                                 {
                                     dtp.SelectedDate = Convert.ToDateTime(row[col]);
                                 }
-                                else if (row[col].ToString() == "")
+                                else if (rowCol == "")
                                 {
                                     dtp.SelectedDate = null;
                                 }
-
                                 break;
 
                             case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(col.ColumnName);
+                                CheckBox chk = (CheckBox)editStkPnl.FindName(columnName);
                                 chk.IsChecked = Convert.ToBoolean(row[col]);
                                 break;
                         };
                     }
                 }
-
             }
 
             catch (Exception ex)
             {
-                WindowTasks.DisplayError(ex, "Problem Loading the data row:", null);
+                WindowTasks.DisplayError(ex, "Problem Loading the data row:", columnName + ":" + rowCol);
             }
 
 
@@ -482,9 +491,6 @@ namespace dbRad
             SqlConnection appDbCon = new SqlConnection(Config.applicationlDb.ToString());
             try
             {
-
-
-
                 foreach (FrameworkElement element in editStkPnl.Children)
                 {
                     if (element.Name != tabKey)
@@ -719,7 +725,7 @@ namespace dbRad
             string appDbName = Config.applicationlDb.Name;
             string userName = Config.applicationUser.UserName;
             string userPassword = Config.applicationUser.UserPassword;
-            string version = "1.0.0";
+            string version = "1.0.1";
             this.Title = "Application = " + appDbName + " | User = " + userName + " | Version:" + version;
 
             //Build Main Menu
