@@ -5,13 +5,6 @@ namespace dbRad
 {
     public partial class Env
     {
-        public static string ControlDbFilePath()
-        {
-            string FileName;
-            FileName = UserApplicationDirectory() + "ControlDb.xml";
-
-            return FileName;
-        }
         public static string ApplicationDbFilePath()
         {
             string FileName;

@@ -19,7 +19,7 @@ namespace dbRad
             InitSettings();
         }
         public static Connections appDb = new Connections();
-        public static string appDbFilePath = Env.ControlDbFilePath();
+        public static string appDbFilePath = Env.ApplicationDbFilePath();
 
         public static User applicationUser = new User();
         public static string userFilePath = Env.UserFilePath();
