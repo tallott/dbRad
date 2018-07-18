@@ -20,18 +20,6 @@ namespace dbRad
             }
         }
 
-        public string Name
-        {
-            get
-            {
-                return _Name;
-            }
-            set
-            {
-                _Name = value;
-            }
-        }
-
         public string UserName
         {
             get
@@ -58,7 +46,8 @@ namespace dbRad
 
         public override string ToString()
         {
-            return "Data Source=" + _HostName + ";Initial Catalog=" + _Name + ";Persist Security Info=True;User ID=" + _UserName + ";Password=" + _UserPassword;
+            //return "Data Source=" + _HostName + ";Initial Catalog=" + _Name + ";Persist Security Info=True;User ID=" + _UserName + ";Password=" + _UserPassword;
+            return "Data Source=" + _HostName + ";Persist Security Info=True;User ID=" + _UserName + ";Password=" + _UserPassword;
         }
     }
 }

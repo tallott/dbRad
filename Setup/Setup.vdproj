@@ -245,7 +245,7 @@
             "{1525181F-901A-416C-8A58-119130FE478E}:_2A7199C29AF34646B91E1BCFFB26D00D"
             {
             "Name" = "8:#1919"
-            "AlwaysCreate" = "11:FALSE"
+            "AlwaysCreate" = "11:TRUE"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Property" = "8:ProgramMenuFolder"
@@ -253,7 +253,7 @@
                 {
                     "{9EF0B969-E518-4E46-987F-47570745A589}:_A878D8E2046647B288BA581E8EFA4883"
                     {
-                    "Name" = "8:DbRaD"
+                    "Name" = "8:DbRad"
                     "AlwaysCreate" = "11:TRUE"
                     "Condition" = "8:"
                     "Transitive" = "11:FALSE"
@@ -314,15 +314,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:DbRad"
-        "ProductCode" = "8:{C8ABD4A7-B46E-48F1-B07A-89EF825D1F03}"
-        "PackageCode" = "8:{BB7AC2A9-9AD0-47FD-8BF2-DDE9469E1469}"
-        "UpgradeCode" = "8:{85F03C1B-19CE-46E2-AED5-1EB3470F571B}"
+        "ProductCode" = "8:{70A52C6F-F720-4667-B76B-08DEC0E56BE2}"
+        "PackageCode" = "8:{218C18F6-EAC8-41E8-904F-7203CC3D4C12}"
+        "UpgradeCode" = "8:{98A27CA1-F1D8-4043-AE15-246FEB3883A8}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.2"
+        "ProductVersion" = "8:1.0.4"
         "Manufacturer" = "8:talapajar"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

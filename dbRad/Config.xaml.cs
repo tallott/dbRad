@@ -18,11 +18,8 @@ namespace dbRad
             InitializeComponent();
             InitSettings();
         }
-        public static Connections controlDb = new Connections();
-        public static string controlDbFilePath = Env.ControlDbFilePath();
-
-        public static Connections applicationlDb = new Connections();
-        public static string applicationDbFilePath = Env.ApplicationDbFilePath();
+        public static Connections appDb = new Connections();
+        public static string appDbFilePath = Env.ControlDbFilePath();
 
         public static User applicationUser = new User();
         public static string userFilePath = Env.UserFilePath();
@@ -46,30 +43,22 @@ namespace dbRad
             Grid mainGrid = new Grid();
             TabControl tabControl = new TabControl();
 
-            TabItem settingstab = new TabItem();
-            settingstab.Header = "Settings";
-            settingstab.GotFocus += new RoutedEventHandler((s, e) =>
+            TabItem logintab = new TabItem();
+            logintab.Header = "User Login";
+            logintab.GotFocus += new RoutedEventHandler((s, e) =>
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
             });
 
-            TabItem controlDbtab = new TabItem();
-            controlDbtab.Header = "Control";
-            controlDbtab.GotFocus += new RoutedEventHandler((s, e) =>
+            TabItem appDbTab = new TabItem();
+            appDbTab.Header = "Application Host";
+            appDbTab.GotFocus += new RoutedEventHandler((s, e) =>
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
             });
 
-            TabItem applicationDbtab = new TabItem();
-            applicationDbtab.Header = "Application";
-            applicationDbtab.GotFocus += new RoutedEventHandler((s, e) =>
-            {
-                window.SizeToContent = SizeToContent.WidthAndHeight;
-            });
-
-            tabControl.Items.Add(settingstab);
-            tabControl.Items.Add(applicationDbtab);
-            tabControl.Items.Add(controlDbtab);
+            tabControl.Items.Add(logintab);
+            tabControl.Items.Add(appDbTab);
 
             RowDefinition row1 = new RowDefinition();
             row1.Height = GridLength.Auto;
@@ -83,17 +72,12 @@ namespace dbRad
             StackPanel controlDbStackPanel = new StackPanel();
             controlDbStackPanel.Style = FindStyle("winEditPanelStyle");
 
-            controlDbtab.Content = controlDbStackPanel;
-
-            StackPanel applicationDbStackPanel = new StackPanel();
-            applicationDbStackPanel.Style = FindStyle("winEditPanelStyle");
-
-            applicationDbtab.Content = applicationDbStackPanel;
+            appDbTab.Content = controlDbStackPanel;
 
             StackPanel settingsStackPanel = new StackPanel();
             settingsStackPanel.Style = FindStyle("winEditPanelStyle");
 
-            settingstab.Content = settingsStackPanel;
+            logintab.Content = settingsStackPanel;
 
             StackPanel buttonStackPanel = new StackPanel();
             buttonStackPanel.Style = FindStyle("winButtonStack");
@@ -116,8 +100,7 @@ namespace dbRad
             buttonSave.Style = FindStyle("winButtonStyle");
             buttonSave.Click += new RoutedEventHandler((s, e) =>
             {
-                Filetasks.WriteToXmlFile<Connections>(controlDbFilePath, controlDb);
-                Filetasks.WriteToXmlFile<Connections>(applicationDbFilePath, applicationlDb);
+                Filetasks.WriteToXmlFile<Connections>(appDbFilePath, appDb);
                 Filetasks.WriteToXmlFile<User>(userFilePath, applicationUser);
                 WindowTasks.winClose(s, e);
 
@@ -129,7 +112,7 @@ namespace dbRad
             buttonCancel.Style = FindStyle("winButtonStyle");
             buttonCancel.Click += new RoutedEventHandler((s, e) =>
             {
-                if (Config.controlDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
+                if (Config.appDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
                 {
                     WindowTasks.appShutdown(s, e);
                 }
@@ -147,26 +130,15 @@ namespace dbRad
             Grid.SetRow(controlDbStackPanel, 0);
             mainGrid.Children.Add(tabControl);
 
-            if (File.Exists(controlDbFilePath))
+            if (File.Exists(appDbFilePath))
             {
-                controlDb = Filetasks.ReadFromXmlFile<Connections>(controlDbFilePath);
-                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, controlDb, out controlDbStackPanel);
+                appDb = Filetasks.ReadFromXmlFile<Connections>(appDbFilePath);
+                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
             else
             {
-                Filetasks.WriteToXmlFile<Connections>(controlDbFilePath, controlDb);
-                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, controlDb, out controlDbStackPanel);
-            }
-
-            if (File.Exists(applicationDbFilePath))
-            {
-                applicationlDb = Filetasks.ReadFromXmlFile<Connections>(applicationDbFilePath);
-                BuildFormClass(applicationDbStackPanel, lableStyle, textBoxStyle, applicationlDb, out applicationDbStackPanel);
-            }
-            else
-            {
-                Filetasks.WriteToXmlFile<Connections>(applicationDbFilePath, applicationlDb);
-                BuildFormClass(applicationDbStackPanel, lableStyle, textBoxStyle, applicationlDb, out applicationDbStackPanel);
+                Filetasks.WriteToXmlFile<Connections>(appDbFilePath, appDb);
+                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
 
             if (File.Exists(userFilePath))

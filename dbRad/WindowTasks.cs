@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,22 +12,25 @@ namespace dbRad
         public static List<string> winMetadataList(string tabId)
         //Returns the list of metadata values for a window
         {
-            SqlConnection ctrlDbCon = new SqlConnection(Config.controlDb.ToString());
+            SqlConnection ctrlDbCon = new SqlConnection(Config.appDb.ToString());
             List<string> listRange = new List<string>();
 
             //get the table string values
             SqlCommand getTab = new SqlCommand();
 
             getTab.CommandText =
-              @"SELECT t.TableName,
+              @"SELECT a.ApplicationName,
+                       t.TableName,
                        t.TableLabel,
                        s.SchemaName,
                        s.SchemaLabel,
-                       t.TableKey
-                FROM metadata.ApplicationTable t
-                     INNER JOIN metadata.ApplicationSchema apps ON t.ApplicationSchemaId = apps.ApplicationSchemaId
-                     INNER JOIN metadata.[Schema] s ON apps.SchemaId = s.SchemaId
-                WHERE ApplicationTableId = @tabId";
+                       t.TableKey,
+                       t.ApplicationTableId
+                FROM control.metadata.Application a
+                     INNER JOIN control.metadata.ApplicationSchema apps ON a.ApplicationId = apps.ApplicationId
+                     INNER JOIN control.metadata.ApplicationTable t ON t.ApplicationSchemaId = apps.ApplicationSchemaId
+                     INNER JOIN control.metadata.[Schema] s ON apps.SchemaId = s.SchemaId
+                                WHERE ApplicationTableId = @tabId";
 
             getTab.CommandType = CommandType.Text;
             getTab.Parameters.AddWithValue("@tabId", tabId);
@@ -40,26 +40,50 @@ namespace dbRad
             SqlDataReader getTabReader = getTab.ExecuteReader();
             getTabReader.Read();
 
+            listRange.Add(getTabReader["ApplicationName"].ToString());
             listRange.Add(getTabReader["TableKey"].ToString());
             listRange.Add(getTabReader["TableName"].ToString());
             listRange.Add(getTabReader["TableLabel"].ToString());
             listRange.Add(getTabReader["SchemaName"].ToString());
             listRange.Add(getTabReader["SchemaLabel"].ToString());
 
+
             ctrlDbCon.Close();
             return listRange;
 
         }
+
+        public static string dataGridGetId(DataGrid winDg)
+        //Gets the Id of the selected grid row
+        {
+            string selectedRowIdVal;
+            try
+            {
+                DataRowView drv = (DataRowView)winDg.SelectedValue;
+                selectedRowIdVal = drv.Row.ItemArray[0].ToString();
+                return selectedRowIdVal;
+            }
+            catch
+            {
+                selectedRowIdVal = null;
+                return selectedRowIdVal;
+            }
+        }
+
         public static void winClose(object sender, RoutedEventArgs e)
         {
             Button clicked = (Button)sender;
             Window w = Window.GetWindow(clicked);
             w.Close();
         }
+
+
         public static void appShutdown(object sender, EventArgs e)
         {
             Application.Current.Shutdown();
         }
+
+
         public static void winSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear)
         //Sets the various mode for the winow
         {
@@ -93,6 +117,8 @@ namespace dbRad
             }
 
         }
+
+
         public static void ResetWinMain()
         {
 
