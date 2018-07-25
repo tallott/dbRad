@@ -1,7 +1,7 @@
 ﻿
-namespace dbRad
+namespace dbRad.Classes
 {
-    public partial class Connections
+    public partial class ApplicationConnections
     {
         private string _HostName = string.Empty;
         private string _Name = string.Empty;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using dbRad.Classes;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -18,11 +19,11 @@ namespace dbRad
             InitializeComponent();
             InitSettings();
         }
-        public static Connections appDb = new Connections();
-        public static string appDbFilePath = Env.ApplicationDbFilePath();
+        public static ApplicationConnections appDb = new ApplicationConnections();
+        public static string appDbFilePath = ApplicationEnviroment.ApplicationDbFilePath();
 
-        public static User applicationUser = new User();
-        public static string userFilePath = Env.UserFilePath();
+        public static ApplicationUser applicationUser = new ApplicationUser();
+        public static string userFilePath = ApplicationEnviroment.UserFilePath();
 
         private Style FindStyle(string styleName)
         {
@@ -100,8 +101,8 @@ namespace dbRad
             buttonSave.Style = FindStyle("winButtonStyle");
             buttonSave.Click += new RoutedEventHandler((s, e) =>
             {
-                Filetasks.WriteToXmlFile<Connections>(appDbFilePath, appDb);
-                Filetasks.WriteToXmlFile<User>(userFilePath, applicationUser);
+                ApplicationFiletasks.WriteToXmlFile<ApplicationConnections>(appDbFilePath, appDb);
+                ApplicationFiletasks.WriteToXmlFile<ApplicationUser>(userFilePath, applicationUser);
                 WindowTasks.winClose(s, e);
 
             });
@@ -114,7 +115,7 @@ namespace dbRad
             {
                 if (Config.appDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
                 {
-                    WindowTasks.appShutdown(s, e);
+                    ApplicationUtils.appShutdown(s, e);
                 }
                 else
                 {
@@ -132,23 +133,23 @@ namespace dbRad
 
             if (File.Exists(appDbFilePath))
             {
-                appDb = Filetasks.ReadFromXmlFile<Connections>(appDbFilePath);
+                appDb = ApplicationFiletasks.ReadFromXmlFile<ApplicationConnections>(appDbFilePath);
                 BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
             else
             {
-                Filetasks.WriteToXmlFile<Connections>(appDbFilePath, appDb);
+                ApplicationFiletasks.WriteToXmlFile<ApplicationConnections>(appDbFilePath, appDb);
                 BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
 
             if (File.Exists(userFilePath))
             {
-                applicationUser = Filetasks.ReadFromXmlFile<User>(userFilePath);
+                applicationUser = ApplicationFiletasks.ReadFromXmlFile<ApplicationUser>(userFilePath);
                 BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
             else
             {
-                Filetasks.WriteToXmlFile<User>(userFilePath, applicationUser);
+                ApplicationFiletasks.WriteToXmlFile<ApplicationUser>(userFilePath, applicationUser);
                 BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
 

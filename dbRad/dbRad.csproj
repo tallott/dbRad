@@ -71,16 +71,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\ApplicationUtils.cs" />
+    <Compile Include="Classes\DatabaseDataOps.cs" />
+    <Compile Include="Classes\DynamicFormData.cs" />
+    <Compile Include="Classes\WindowMetaList.cs" />
     <Compile Include="Config.xaml.cs">
       <DependentUpon>Config.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Connections.cs" />
-    <Compile Include="Encrypt.cs" />
-    <Compile Include="Env.cs" />
-    <Compile Include="Filetasks.cs" />
-    <Compile Include="WindowDataOps.cs" />
-    <Compile Include="User.cs" />
-    <Compile Include="WindowTasks.cs" />
+    <Compile Include="Classes\ApplicationConnections.cs" />
+    <Compile Include="Classes\ApplicationEnviroment.cs" />
+    <Compile Include="Classes\ApplicationFiletasks.cs" />
+    <Compile Include="Classes\WindowDataOps.cs" />
+    <Compile Include="Classes\ApplicationUser.cs" />
+    <Compile Include="Classes\WindowTasks.cs" />
     <Page Include="Config.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -140,9 +143,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Classes\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

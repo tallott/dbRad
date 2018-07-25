@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Reflection;
 
-namespace dbRad
+namespace dbRad.Classes
 {
-    public partial class Env
+    public partial class ApplicationEnviroment
     {
         public static string ApplicationDbFilePath()
         {
@@ -37,22 +37,7 @@ namespace dbRad
             AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
             return AssemblyName;
         }
-        //public static string ApplicationDirectory()
-        //{
-        //    string Directory = null;
-
-        //    Directory = AppDomain.CurrentDomain.RelativeSearchPath;
-
-        //    if (Directory == null)
-        //    {
-        //        Directory = AppDomain.CurrentDomain.BaseDirectory;
-        //    }
-
-        //    EnsureDirSlash(ref Directory);
-
-        //    return Directory;
-        //}
-
+     
         public static void EnsureDirSlash(ref String Directory)
         {
             if (Directory != null)

@@ -1,0 +1,3 @@
+﻿CREATE LOGIN [cUser]
+    WITH PASSWORD = N'tpen ih5kljxy^Kom?v9h$tsmsFT7_&#$!~<Fpmkukxqpl{b', SID = 0x2E05EE3706D81544A69D80971998115C, DEFAULT_LANGUAGE = [us_english], CHECK_POLICY = OFF;
+

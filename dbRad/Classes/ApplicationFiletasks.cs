@@ -3,9 +3,9 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace dbRad
+namespace dbRad.Classes
 {
-    public partial class Filetasks
+    public partial class ApplicationFiletasks
     {
 
         public static T ReadFromXmlFile<T>(string filePath) where T : new()

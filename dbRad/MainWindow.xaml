@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:dbRad"
         mc:Ignorable="d"
-        Title="MainWindow" Height="300" Width="500"
-        Name="winMain">
+        Title="MainWindow"
+        Name="winMain" MinWidth="600" MinHeight="250" Height="248" Width="600">
 
     <Grid>
         <Menu x:Name="menu" HorizontalAlignment="Left" Height="27" VerticalAlignment="Top" Width="1367"/>

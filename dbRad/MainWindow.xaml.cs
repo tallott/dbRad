@@ -2,13 +2,12 @@
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Data.SqlClient;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Reflection;
+using dbRad.Classes;
+using System.Windows.Data;
 
 namespace dbRad
 {
@@ -22,23 +21,19 @@ namespace dbRad
             InitializeComponent();
             this.Hide();
             appStartup();
-
-
         }
+
         private void appStartup()
         {
             if (File.Exists(Config.userFilePath))
             {
-                Config.applicationUser = Filetasks.ReadFromXmlFile<User>(Config.userFilePath);
+                Config.applicationUser = ApplicationFiletasks.ReadFromXmlFile<ApplicationUser>(Config.userFilePath);
             }
             if (File.Exists(Config.appDbFilePath))
             {
-                Config.appDb = Filetasks.ReadFromXmlFile<Connections>(Config.appDbFilePath);
+                Config.appDb = ApplicationFiletasks.ReadFromXmlFile<ApplicationConnections>(Config.appDbFilePath);
             }
-            //if (File.Exists(Config.applicationDbFilePath))
-            //{
-            //    Config.applicationlDb = Filetasks.ReadFromXmlFile<Connections>(Config.applicationDbFilePath);
-            //}
+
             if (Config.appDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
             {
                 Window config = new Config();
@@ -51,13 +46,6 @@ namespace dbRad
 
         }
 
-        private void numberValidationTextBox(object sender, TextCompositionEventArgs e)
-        //Makes sure users can only enter numerics
-        {
-            Regex regex = new Regex("[^0-9.-]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
-
         private void showConfig(object sender, EventArgs e)
         //Open config window
         {
@@ -65,523 +53,7 @@ namespace dbRad
             winConfig.Show();
         }
 
-        private void dbGetDataGridRows(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
-        //Fills the form data grid with the filter applied
-        {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
-            DataTable winDt = new DataTable();
-
-            string sqlPart;
-            string sqlParam = applicationTableId;
-
-            //Single row to return user defined DML SQL for DataGrid
-            sqlPart =
-              @"SELECT TOP 1 Dml
-                FROM control.metadata.ApplicationTable
-                WHERE ApplicationTableId = @sqlParam";
-
-            string sqlTxt = dataGridGetBaseSql(sqlPart, sqlParam);
-
-            //Append filter where clause to the end of DML
-            if (selectedFilter == 0) //Default filter selected
-            {
-                sqlPart =
-                  @"SELECT FilterDefinition
-                    FROM control.metadata.ApplicationFilter
-                    WHERE ApplicationTableId = @sqlparam
-                            AND SortOrder = 1";
-            }
-            else //Custom filter selected
-            {
-                sqlParam = selectedFilter.ToString();
-                sqlPart =
-                  @"SELECT FilterDefinition
-                    FROM control.metadata.ApplicationFilter
-                    WHERE ApplicationFilterId = @sqlparam";
-            }
-
-            string fltTxt = dataGridGetBaseSql(sqlPart, sqlParam);
-            //string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-            //string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
-            winNew.Resources.Remove("winFilter");
-            winNew.Resources.Add("winFilter", fltTxt);
-            //Build where clause with replacement values for $COLUMN_NAME$ parameters  
-            fltTxt = WindowDataOps.SubstituteWindowParameters(editStkPnl, fltTxt, columnValues);
-            sqlTxt = sqlTxt + " WHERE " + fltTxt;
-            string sqlCountText = sqlTxt;
-            sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
-
-            try
-            {
-                {
-                    appDbCon.Open();
-                    {
-                        //Run the SQL cmd to return SQL that fills DataGrid
-                        SqlCommand execTabSql = appDbCon.CreateCommand();
-                        execTabSql.CommandText = sqlTxt;
-
-                        //Create an adapter and fill the grid using sql and adapater
-                        SqlDataAdapter winDa = new SqlDataAdapter(execTabSql);
-                        winDa.Fill(winDt);
-                        winDg.ItemsSource = winDt.DefaultView;
-
-                        //set the page counter
-                        string tabSchema = WindowTasks.winMetadataList(applicationTableId)[4];
-                        string tabName = WindowTasks.winMetadataList(applicationTableId)[2];
-                        int rowCount = 0;
-
-                        int chrStart = sqlCountText.IndexOf("SELECT") + 6;
-                        int chrEnd = sqlCountText.IndexOf("FROM");
-
-                        sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
-                        SqlCommand countRows = new SqlCommand(sqlTxt, appDbCon);
-                        rowCount = (int)countRows.ExecuteScalar();
-                        int pageSize = Convert.ToInt32(tbFetch.Text);
-                        int offSet = Convert.ToInt32(tbOffset.Text);
-
-                        string pageCount = Convert.ToString((rowCount / pageSize) + 1);
-                        string pageNumber = Convert.ToString((offSet / pageSize) + 1);
-
-
-                        tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
-                        //Define the grid columns
-
-                        appDbCon.Close();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "ERROR in Filter SQL:" + ex.Message, sqlTxt);
-                appDbCon.Close();
-            }
-        }
-
-        private string dataGridGetBaseSql(string sqlpart, string sqlParam)
-        //Single row to return user defined DML SQL for DataGrid
-        {
-
-            SqlConnection controlDbCon = new SqlConnection(Config.appDb.ToString());
-
-            SqlCommand getTabSql = new SqlCommand();
-
-            getTabSql.CommandText = sqlpart;
-            getTabSql.Parameters.AddWithValue("@sqlparam", sqlParam);
-            getTabSql.CommandType = CommandType.Text;
-            getTabSql.Connection = controlDbCon;
-
-            controlDbCon.Open();
-
-            //Run the SQL cmd to return the base SQL that fills DataGrid
-            string sqlTxt = Convert.ToString(getTabSql.ExecuteScalar());
-
-            controlDbCon.Close();
-            return sqlTxt;
-        }
-
-        private void dataGridSelectRow(string id, DataGrid winDg)
-        //Selects the row in the data grid for the current id
-        {
-            winDg.UpdateLayout();
-            try
-            {
-                for (int i = 0; i < winDg.Items.Count; i++)
-                {
-                    DataGridRow row = (DataGridRow)winDg.ItemContainerGenerator.ContainerFromIndex(i);
-                    TextBlock cellContent = winDg.Columns[0].GetCellContent(row) as TextBlock;
-                    if (cellContent != null && cellContent.Text.Equals(id))
-                    {
-                        object item = winDg.Items[i];
-                        winDg.SelectedItem = item;
-                        winDg.ScrollIntoView(item);
-                        row.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Problem Selecting the DataGrid Row:", null);
-            }
-        }
-
-
-
-        private void dataGridClicked(String applicationTableId, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValues)
-        //gets the id of the row selected and loads the edit fileds with the database values
-        {
-            string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-            try
-            {
-
-                if (selectedRowIdVal != null)
-                {
-                    DataTable winSelectedRowDataTable = dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
-                    WindowDataOps.winLoadDataRow(editStkPnl, winSelectedRowDataTable, controlValues);
-                    winDg.UpdateLayout();
-                }
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Problem Loading Data Grid:", null);
-            }
-        }
-
-        private void winResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch)
-        {
-            tbSelectorText.Text = "";
-            tbOffset.Text = "0";
-            tbFetch.Text = "25";
-        }
-
-        private void winClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters)
-        //Clears the data edit fields
-
-        {
-            string filterList = winNew.FindResource("winFilter").ToString();
-            foreach (FrameworkElement element in editStkPnl.Children)
-            {
-                string ctlType = element.GetType().Name;
-                switch (ctlType)
-                {
-                    case "TextBox":
-                        TextBox tb = (TextBox)editStkPnl.FindName(element.Name);
-                        switch (keepFilters)
-                        {
-                            case true:
-                                if (!filterList.Contains(tb.Name))
-                                {
-                                    tb.Text = null;
-                                }
-                                break;
-                            case false:
-                                tb.Text = null;
-                                break;
-
-                        }
-                        break;
-
-                    case "ComboBox":
-
-                        ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
-                        switch (keepFilters)
-                        {
-                            case true:
-
-                                if (!filterList.Contains(cb.Name))
-                                {
-                                    cb.SelectedValue = null;
-                                }
-                                break;
-                            case false:
-                                cb.SelectedValue = null;
-                                break;
-
-                        }
-                        break;
-                    case "DatePicker":
-                        DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
-                        dtp.SelectedDate = null;
-                        break;
-                    case "CheckBox":
-                        CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
-                        chk.IsChecked = null;
-                        break;
-                };
-            }
-        }
-
-        private DataTable dbGetDataRow(string applicationTableId, string id, StackPanel editStkPnl)
-        //Loads a single row from the database into a table for the record for the selected ID
-        {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
-            string appName = WindowTasks.winMetadataList(applicationTableId)[0];
-            string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
-            string tabName = WindowTasks.winMetadataList(applicationTableId)[2];
-            string tabLabel = WindowTasks.winMetadataList(applicationTableId)[3];
-            string schName = WindowTasks.winMetadataList(applicationTableId)[4];
-            string schLabel = WindowTasks.winMetadataList(applicationTableId)[5];
-
-            string sql = "SELECT * FROM [" + appName + "].[" + schName + "].[" + tabName + "] WHERE " + tabKey + " = @Id";
-
-            DataTable winSelectedRowDataTable = new DataTable();
-
-            SqlCommand winSelectedRowSql = new SqlCommand();
-            winSelectedRowSql.CommandText = sql;
-            winSelectedRowSql.Parameters.AddWithValue("@Id", id);
-            winSelectedRowSql.CommandType = CommandType.Text;
-            winSelectedRowSql.Connection = appDbCon;
-
-            appDbCon.Open();
-            try
-            {
-                SqlDataAdapter winDa = new SqlDataAdapter(winSelectedRowSql);
-                winDa.Fill(winSelectedRowDataTable);
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Problem Loading data grid row:" + ex.Message, sql);
-                appDbCon.Close();
-            }
-
-            appDbCon.Close();
-            return winSelectedRowDataTable;
-
-        }
-
-        private void dbCreateRecord(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
-        //Creates a new record in the db
-        {
-            string appName = WindowTasks.winMetadataList(applicationTableId)[0];
-            string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
-            string tabName = WindowTasks.winMetadataList(applicationTableId)[2];
-            string tabLabel = WindowTasks.winMetadataList(applicationTableId)[3];
-            string schName = WindowTasks.winMetadataList(applicationTableId)[4];
-            string schLabel = WindowTasks.winMetadataList(applicationTableId)[5];
-
-
-            List<string> columns = new List<string>();
-            List<string> columnUpdates = new List<string>();
-
-            string sql = string.Empty;
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-            try
-            {
-                foreach (FrameworkElement element in editStkPnl.Children)
-                {
-                    if (element.Name != tabKey)
-                    {
-
-                        string ctlType = element.GetType().Name;
-                        // MessageBox.Show(element.Name);
-                        switch (ctlType)
-                        {
-                            case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add("'" + tb.Text + "'");
-                                break;
-                            case "ComboBox":
-
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add(cb.SelectedValue.ToString());
-                                break;
-                            case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                if (dtp.SelectedDate != null)
-                                {
-                                    columnUpdates.Add("'" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "'");
-                                }
-                                else
-                                {
-                                    columnUpdates.Add("NULL");
-                                }
-
-                                break;
-                            case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add(((bool)chk.IsChecked ? 1 : 0).ToString());
-                                break;
-                        };
-
-                    }
-                }
-                string csvColumns = "(" + String.Join(",", columns) + ")";
-                string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                sql = "INSERT INTO [" + appName + "].[" + schName + "].[" + tabName + "]" + csvColumns + csvColumnUpdates;
-
-                SqlCommand dbCreateRecordSql = new SqlCommand();
-                dbCreateRecordSql.CommandText = sql;
-                dbCreateRecordSql.CommandType = CommandType.Text;
-                dbCreateRecordSql.Connection = appDbCon;
-
-                appDbCon.Open();
-                dbCreateRecordSql.ExecuteNonQuery();
-                appDbCon.Close();
-
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Cannot Insert Record:" + ex.Message, sql);
-                appDbCon.Close();
-            }
-        }
-
-        private void dbUpdateRecord(Window winNew, String applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
-        //updates the database with values in the data edit fields
-        {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
-            string appName = WindowTasks.winMetadataList(applicationTableId)[0];
-            string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
-            string tabName = WindowTasks.winMetadataList(applicationTableId)[2];
-            string tabLabel = WindowTasks.winMetadataList(applicationTableId)[3];
-            string schName = WindowTasks.winMetadataList(applicationTableId)[4];
-            string schLabel = WindowTasks.winMetadataList(applicationTableId)[5];
-
-            string sql = string.Empty;
-
-            try
-            {
-                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-
-                DataTable winSelectedRowDataTable = dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
-
-                Boolean isDirty = false;
-
-                foreach (DataRow row in winSelectedRowDataTable.Rows)
-                {
-                    sql = "UPDATE [" + appName + "].[" + schName + "].[" + tabName + "] SET ";
-                    foreach (DataColumn col in winSelectedRowDataTable.Columns)
-                    {
-
-                        //Build the SQL Statement to update changed values
-
-                        //Determine the Type of control
-                        object obj = editStkPnl.FindName(col.ColumnName);
-
-                        string ctlName = obj.GetType().Name;
-                        //Use Type to work out how to process value;
-                        switch (ctlName)
-                        {
-                            case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(col.ColumnName);
-
-                                if (tb.Text.ToString() != row[col].ToString())
-                                {
-                                    sql = sql + col.ColumnName + " = '" + tb.Text + "', ";
-                                    isDirty = true;
-                                };
-                                break;
-
-                            case "ComboBox":
-
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
-                                if (cb.SelectedValue.ToString() != row[col].ToString())
-                                {
-                                    sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
-                                    isDirty = true;
-                                }
-                                break;
-
-                            case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(col.ColumnName);
-                                if (row[col].ToString() != "" && dtp.SelectedDate != null)
-
-                                {
-                                    if (Convert.ToDateTime(dtp.SelectedDate) != Convert.ToDateTime(row[col]))
-                                    {
-                                        sql = sql + col.ColumnName + " = '" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "', ";
-                                        isDirty = true;
-                                    }
-                                }
-                                else if (row[col].ToString() == "" && dtp.SelectedDate != null)
-                                {
-                                    sql = sql + col.ColumnName + " = '" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "', ";
-                                    isDirty = true;
-                                }
-                                    ;
-                                break;
-
-                            case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(col.ColumnName);
-                                if (Convert.ToBoolean(chk.IsChecked) != Convert.ToBoolean(row[col]))
-                                {
-                                    sql = sql + col.ColumnName + " = '" + Convert.ToBoolean(chk.IsChecked) + "', ";
-                                    isDirty = true;
-                                }
-                                    ;
-                                break;
-                        };
-
-                    }
-                    if (isDirty)
-                    { //Update the selected record in database
-
-                        sql = sql.Trim(',', ' ') + " WHERE " + tabKey + " = @Id";
-
-                        SqlCommand listItemSaveSql = new SqlCommand();
-                        listItemSaveSql.CommandText = sql;
-                        listItemSaveSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
-                        listItemSaveSql.CommandType = CommandType.Text;
-                        listItemSaveSql.Connection = appDbCon;
-
-                        appDbCon.Open();
-                        listItemSaveSql.ExecuteNonQuery();
-                        appDbCon.Close();
-
-                        dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
-                        TextBox tabIdCol = (TextBox)editStkPnl.FindName(tabKey);
-                        selectedRowIdVal = tabIdCol.Text;
-
-                        dataGridSelectRow(selectedRowIdVal, winDg);
-
-                    };
-
-
-                }
-
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Cannot Save Record:" + ex.Message, sql);
-                appDbCon.Close();
-            };
-        }
-
-        private void dbDeleteRecord(Window winNew, String applicationTableId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
-        //deletes the selected row from the database
-        {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
-            string appName = WindowTasks.winMetadataList(applicationTableId)[0];
-            string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
-            string tabName = WindowTasks.winMetadataList(applicationTableId)[2];
-            string tabLabel = WindowTasks.winMetadataList(applicationTableId)[3];
-            string schName = WindowTasks.winMetadataList(applicationTableId)[4];
-            string schLabel = WindowTasks.winMetadataList(applicationTableId)[5];
-
-            string sql = string.Empty;
-            try
-            {
-                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-                DataTable winSelectedRowDataTable = dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
-                //Delete the selected row from db
-
-                sql = "DELETE FROM [" + appName + "].[" + schName + "].[" + tabName + "] WHERE " + tabKey + " = @Id";
-
-                SqlCommand delRowSql = new SqlCommand();
-                delRowSql.CommandText = sql;
-                delRowSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
-                delRowSql.CommandType = CommandType.Text;
-                delRowSql.Connection = appDbCon;
-
-                appDbCon.Open();
-                delRowSql.ExecuteNonQuery();
-                appDbCon.Close();
-
-                winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
-
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
-            }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Cannot Delete Record:" + ex.Message, sql);
-                appDbCon.Close();
-            };
-        }
-
         private void mainWinBuild()
-
         //Builds the main window for the appDbName
         {
             SqlConnection ctrlAppDbCon = new SqlConnection(Config.appDb.ToString());
@@ -590,10 +62,11 @@ namespace dbRad
 
             //Get configured Application database
             string appDbName;
+            string appHost = Config.appDb.HostName;
             string userName = Config.applicationUser.UserName;
             string userPassword = Config.applicationUser.UserPassword;
             string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
-            this.Title = "User = " + userName + " | Version:" + version;
+            this.Title = "Connection - " + userName + "@" + appHost + " (Software Version:" + version + ")";
 
             //Build Main Menu
 
@@ -605,7 +78,7 @@ namespace dbRad
             //Item 1 Exit
             MenuItem fileExitItem = new MenuItem();
             fileExitItem.Header = "Exit";
-            fileExitItem.Click += new RoutedEventHandler(WindowTasks.appShutdown);
+            fileExitItem.Click += new RoutedEventHandler(ApplicationUtils.appShutdown);
             fileMenu.Items.Add(fileExitItem);
 
             //A config Menu
@@ -657,12 +130,12 @@ namespace dbRad
                         SqlCommand getSchList = new SqlCommand();
                         getSchList.CommandText =
                               @"SELECT DISTINCT ApplicationSchemaId,
-                           SchemaLabel
-                    FROM control.directory.UserObjectPermisions
-                    WHERE ApplicationName = @appDbName
-                      AND UserName = @UserName
-                      AND UserPassword = @UserPassword
-                    ORDER BY SchemaLabel";
+                                       SchemaLabel
+                                FROM control.directory.UserObjectPermisions
+                                WHERE ApplicationName = @appDbName
+                                  AND UserName = @UserName
+                                  AND UserPassword = @UserPassword
+                                ORDER BY SchemaLabel";
 
                         getAppList.Connection = ctrlAppDbCon;
                         ctrlSchDbCon.Open();
@@ -731,12 +204,12 @@ namespace dbRad
             this.Show();
         }
 
-
         private void winConstruct(string applicationTableId)
         //Builds the window for the selected table 
         {
             SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
             SqlConnection ctrlDbCon = new SqlConnection(Config.appDb.ToString());
+            //dynamic formData = new DynamicFormData();
 
             string controlName = string.Empty;
             string controlLabel = string.Empty;
@@ -749,28 +222,25 @@ namespace dbRad
             Dictionary<string, string> controlValues = new Dictionary<string, string>();
             Int32 seletedFilter = 0;
 
-            string appName = WindowTasks.winMetadataList(applicationTableId)[0];
-            string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
-            string tabName = WindowTasks.winMetadataList(applicationTableId)[2];
-            string tabLabel = WindowTasks.winMetadataList(applicationTableId)[3];
-            string schName = WindowTasks.winMetadataList(applicationTableId)[4];
-            string schLable = WindowTasks.winMetadataList(applicationTableId)[5];
-
+            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
+            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
+            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
+            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
+            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
+            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
             //Create a new window - this is a window based on an underlying database table
             Window winNew = new Window();
             winNew.Style = (Style)FindResource("winStyle");
-            winNew.Title = "Manage " + tabLabel + " (" + tabName + ")";
-            winNew.Name = tabName;
+            winNew.Title = "Manage " + tableLabel + " (" + tableName + ")";
+            winNew.Name = tableName;
 
             winNew.Resources.Add("tabId", applicationTableId);
             winNew.Resources.Add("winMode", "SELECT");
             winNew.Resources.Add("winFilter", "1 = 1");
 
-
             //Main layout Grid - 2 cols by 3 rows
             Grid mainGrid = new Grid();
-            // NameScope.SetNameScope(mainGrid, new NameScope());
 
             //1st Column
             ColumnDefinition col1 = new ColumnDefinition();
@@ -792,10 +262,18 @@ namespace dbRad
             RowDefinition row3 = new RowDefinition();
             row3.Height = GridLength.Auto;
 
+            //Data Grids
+            //Window data list
+            DataGrid winDg = new DataGrid();
+            winDg.Style = (Style)FindResource("DataGridStyle");
+            winDg.Tag = winNew.Tag;
+            winDg.IsReadOnly = true;
+            winDg.SelectionMode = DataGridSelectionMode.Single;
 
             //Stack Panels
             //Window editing area
             StackPanel editStkPnl = new StackPanel();
+            //editStkPnl.DataContext = winDt;
             editStkPnl.Style = (Style)FindResource("winEditPanelStyle");
             editStkPnl.Name = "spEditArea";
             editStkPnl.Orientation = Orientation.Vertical;
@@ -815,21 +293,6 @@ namespace dbRad
             //Record selector area
             StackPanel RecordSelectorStkPnl = new StackPanel();
             RecordSelectorStkPnl.Style = (Style)FindResource("winPageSelectorStack");
-
-            //Data tables
-            //Window data grid - populated with a select query to underlying database table
-            DataTable winDt = new DataTable();
-
-            //Filter lists
-            DataTable fltDt = new DataTable();
-
-            //Data Grids
-            //Window data list
-            DataGrid winDg = new DataGrid();
-            winDg.Style = (Style)FindResource("DataGridStyle");
-            winDg.Tag = winNew.Tag;
-            winDg.IsReadOnly = true;
-            winDg.SelectionMode = DataGridSelectionMode.Single;
 
             //Other Controls
             //Combo for Filter Selector
@@ -883,7 +346,7 @@ namespace dbRad
             TextBox tbFetch = new TextBox();
             tbFetch.Visibility = Visibility.Collapsed;
 
-            winResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
+            WindowTasks.winResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
 
             //Populate Data tables
             //Window Filter - Gets the list of filters for the window based on the underlying database table
@@ -963,15 +426,31 @@ namespace dbRad
 
                             case "ID":
                                 TextBox rowKey = new TextBox();
+                                //TextBox rowKeyShadow = new TextBox();
                                 rowKey.Name = controlName;
                                 rowKey.Style = (Style)FindResource("winTextBoxStyle");
                                 rowKey.IsEnabled = Convert.ToBoolean(controlEnabled);
+                                formData.Add(controlName,null);
+
+                                //Binding binding = new Binding(controlName);
+                                //binding.Mode = BindingMode.TwoWay;
+                                //binding.Source = formData;
+                                //rowKey.SetBinding(TextBox.TextProperty, binding);
+                                //rowKeyShadow.SetBinding(TextBox.TextProperty, binding);
+
+                                //rowKey.SetBinding(TextBox.TextProperty, winBinding);
                                 editStkPnl.Children.Add(rowKey);
+                                //editStkPnl.Children.Add(rowKeyShadow);
                                 editStkPnl.RegisterName(rowKey.Name, rowKey);
                                 rowKey.TextChanged += new TextChangedEventHandler((s, e) =>
                                 {
                                     WindowDataOps.winGetControlValue(rowKey, controlValues);
+                                    //((TextBox)s).GetBindingExpression(TextBox.TextProperty).UpdateSource();
                                 });
+                                //rowKeyShadow.TextChanged += new TextChangedEventHandler((s, e) =>
+                                //{
+                                //    ((TextBox)s).GetBindingExpression(TextBox.TextProperty).UpdateSource();
+                                //});
                                 break;
 
                             case "TEXT":
@@ -1007,7 +486,7 @@ namespace dbRad
                                 TextBox nb = new TextBox();
                                 nb.Name = controlName;
                                 nb.Style = (Style)FindResource("winNumBoxStyle");
-                                nb.PreviewTextInput += numberValidationTextBox;
+                                nb.PreviewTextInput += ApplicationUtils.numberValidationTextBox;
                                 nb.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 editStkPnl.Children.Add(nb);
                                 editStkPnl.RegisterName(nb.Name, nb);
@@ -1065,7 +544,7 @@ namespace dbRad
                                         WindowDataOps.winGetControlValue(cb, controlValues);
                                         if (winNew.Resources["winMode"].ToString() != "EDIT")
                                         {
-                                            dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                                            DatabaseDataOps.dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
                                         }
 
                                     }
@@ -1128,7 +607,7 @@ namespace dbRad
                 if (winDg.SelectedItem == null) return;
 
                 WindowTasks.winSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
-                dataGridClicked(applicationTableId, winDg, editStkPnl, controlValues);
+                WindowDataOps.winDataGridClicked(applicationTableId, winDg, editStkPnl, controlValues);
             });
 
             //Filter Selector
@@ -1137,9 +616,9 @@ namespace dbRad
                 ComboBox clicked = (ComboBox)s;
                 seletedFilter = (Int32)clicked.SelectedValue;
                 WindowTasks.winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
-                winResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-                winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
+                WindowTasks.winResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
+                DatabaseDataOps.dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
             }
             );
 
@@ -1149,12 +628,12 @@ namespace dbRad
                 switch (winNew.Resources["winMode"].ToString())
                 {
                     case "NEW":
-                        dbCreateRecord(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-                        winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
+                        DatabaseDataOps.dbCreateRecord(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                        WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
                         WindowTasks.winSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                         break;
                     case "EDIT":
-                        dbUpdateRecord(winNew, applicationTableId, winDg, editStkPnl, fltStkPnl, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                        DatabaseDataOps.dbUpdateRecord(winNew, applicationTableId, winDg, editStkPnl, fltStkPnl, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
                         WindowTasks.winSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                         break;
                 }
@@ -1163,11 +642,11 @@ namespace dbRad
             btnNew.Click += new RoutedEventHandler((s, e) =>
             {
                 WindowTasks.winSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
-                winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
+                WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
             });
             btnDelete.Click += new RoutedEventHandler((s, e) =>
             {
-                dbDeleteRecord(winNew, applicationTableId, fltStkPnl, winDg, editStkPnl, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.dbDeleteRecord(winNew, applicationTableId, fltStkPnl, winDg, editStkPnl, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
                 WindowTasks.winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
             });
             btnExit.Click += new RoutedEventHandler(WindowTasks.winClose);
@@ -1175,22 +654,22 @@ namespace dbRad
             {
                 seletedFilter = 0;
                 winFlt.SelectedIndex = seletedFilter;
-                winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
-                winResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
+                WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
+                WindowTasks.winResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
                 WindowTasks.winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
                 WindowDataOps.winClearControlDictionaryValues(controlValues);
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
 
             });
             tbOffset.TextChanged += new TextChangedEventHandler((s, e) =>
             {
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
             });
 
             btnNextPage.Click += new RoutedEventHandler((s, e) =>
               {
                   tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) + Convert.ToInt32(tbFetch.Text));
-                  winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
+                  WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
               });
 
             btnPrevPage.Click += new RoutedEventHandler((s, e) =>
@@ -1198,7 +677,7 @@ namespace dbRad
                 if (Convert.ToInt32(tbOffset.Text) >= Convert.ToInt32(tbFetch.Text))
                 {
                     tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) - Convert.ToInt32(tbFetch.Text));
-                    winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
+                    WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, true);
                 }
             });
 
@@ -1261,7 +740,7 @@ namespace dbRad
             winNew.Show();
 
 
-            dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, 0, controlValues, tbOffset, tbFetch, tbSelectorText);
+            DatabaseDataOps.dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, 0, controlValues, tbOffset, tbFetch, tbSelectorText);
             WindowTasks.winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);
         }
     }

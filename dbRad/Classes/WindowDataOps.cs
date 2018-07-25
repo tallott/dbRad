@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace dbRad
+namespace dbRad.Classes
 {
     class WindowDataOps
     {
@@ -36,7 +36,7 @@ namespace dbRad
                 if (targetTxt.Contains(s))
                 {
                     targetTxt = targetTxt.Replace(s, r);
-                   
+
                 }
             }
 
@@ -44,7 +44,6 @@ namespace dbRad
 
             return targetTxt;
         }
-
 
         public static void winLoadDataRow(StackPanel editStkPnl, DataTable winSelectedRowDataTable, Dictionary<string, string> controlValues)
         //Loads the data editing UI with the values from the row in winSelectedRowDataTable 
@@ -144,6 +143,64 @@ namespace dbRad
             controlValues[dtp.Name] = "'" + dtp.Text + "'";
         }
 
+        public static void winDataGridClicked(String applicationTableId, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        //gets the id of the row selected and loads the edit fileds with the database values
+        {
+            string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+            try
+            {
+
+                if (selectedRowIdVal != null)
+                {
+                    DataTable winSelectedRowDataTable = dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
+                    WindowDataOps.winLoadDataRow(editStkPnl, winSelectedRowDataTable, controlValues);
+                    winDg.UpdateLayout();
+                }
+            }
+            catch (Exception ex)
+            {
+                WindowTasks.DisplayError(ex, "Problem Loading Data Grid:", null);
+            }
+        }
+
+        public static DataTable dbGetDataRow(string applicationTableId, string id, StackPanel editStkPnl)
+        //Loads a single row from the database into a table for the record for the selected ID
+        {
+            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
+
+            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
+            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
+            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
+            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
+            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
+            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+
+            string sql = "SELECT * FROM [" + applicationName + "].[" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
+
+            DataTable winSelectedRowDataTable = new DataTable();
+
+            SqlCommand winSelectedRowSql = new SqlCommand();
+            winSelectedRowSql.CommandText = sql;
+            winSelectedRowSql.Parameters.AddWithValue("@Id", id);
+            winSelectedRowSql.CommandType = CommandType.Text;
+            winSelectedRowSql.Connection = appDbCon;
+
+            appDbCon.Open();
+            try
+            {
+                SqlDataAdapter winDa = new SqlDataAdapter(winSelectedRowSql);
+                winDa.Fill(winSelectedRowDataTable);
+            }
+            catch (Exception ex)
+            {
+                WindowTasks.DisplayError(ex, "Problem Loading data grid row:" + ex.Message, sql);
+                appDbCon.Close();
+            }
+
+            appDbCon.Close();
+            return winSelectedRowDataTable;
+
+        }
 
         public static void winClearControlDictionaryValues(Dictionary<string, string> controlValues)
         //Clears the list of window values used for filters
@@ -153,6 +210,29 @@ namespace dbRad
                 controlValues[key] = "";
             }
         }
+
+        public static string winDataGridGetBaseSql(string sqlpart, string sqlParam)
+        //Single row to return user defined DML SQL for DataGrid
+        {
+
+            SqlConnection controlDbCon = new SqlConnection(Config.appDb.ToString());
+
+            SqlCommand getTabSql = new SqlCommand();
+
+            getTabSql.CommandText = sqlpart;
+            getTabSql.Parameters.AddWithValue("@sqlparam", sqlParam);
+            getTabSql.CommandType = CommandType.Text;
+            getTabSql.Connection = controlDbCon;
+
+            controlDbCon.Open();
+
+            //Run the SQL cmd to return the base SQL that fills DataGrid
+            string sqlTxt = Convert.ToString(getTabSql.ExecuteScalar());
+
+            controlDbCon.Close();
+            return sqlTxt;
+        }
+
 
         public static DataTable winPopulateCombo(ComboBox cb, string applicationTableId, string colname, SqlConnection ctrlDbCon, SqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
         {
@@ -231,44 +311,5 @@ namespace dbRad
             return comboDataTable;
         }
 
-
-        public static void winLoadFilterValues(StackPanel editStkPnl, string editColumn, string filterValue)
-        {
-            string colName = editColumn.Replace("$", "");
-            object obj = editStkPnl.FindName(colName);
-            string ctlType = obj.GetType().Name;
-
-            //Use Type to work out how to process value;
-
-            switch (ctlType)
-            {
-                case "TextBox":
-                    TextBox tb = (TextBox)editStkPnl.FindName(colName);
-                    tb.Text = filterValue;
-                    break;
-
-                case "ComboBox":
-                    ComboBox cb = (ComboBox)editStkPnl.FindName(colName);
-                    cb.SelectedValue = filterValue;
-                    break;
-
-                case "DatePicker":
-                    DatePicker dtp = (DatePicker)editStkPnl.FindName(colName);
-                    if (filterValue != "")
-                    {
-                        dtp.SelectedDate = Convert.ToDateTime(filterValue);
-                    }
-                    else if (filterValue == "")
-                    {
-                        dtp.SelectedDate = null;
-                    }
-                    break;
-
-                case "CheckBox":
-                    CheckBox chk = (CheckBox)editStkPnl.FindName(colName);
-                    chk.IsChecked = Convert.ToBoolean(filterValue);
-                    break;
-            };
-        }
     }
 }

@@ -1,8 +1,8 @@
 ﻿
-namespace dbRad
+namespace dbRad.Classes
 {
 
-    public partial class User
+    public partial class ApplicationUser
     {
         private static string _UserName = string.Empty;
         private static string _UserPassword = string.Empty;

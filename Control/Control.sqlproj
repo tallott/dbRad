@@ -7,7 +7,7 @@
     <Name>Control</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{e4f6b145-7e1f-4f0b-8ff1-70d81e40a083}</ProjectGuid>
+    <ProjectGuid>{83a0add5-d0e0-4bd2-86ec-181c9815b4b3}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
@@ -17,13 +17,13 @@
     <ModelCollation>1033,CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetLanguage>CS</TargetLanguage>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <DefaultFilegroup>PRIMARY</DefaultFilegroup>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -63,32 +63,37 @@
     <Folder Include="metadata\Tables\" />
     <Folder Include="directory\" />
     <Folder Include="directory\Tables\" />
-    <Folder Include="dbo\" />
-    <Folder Include="dbo\Views\" />
     <Folder Include="directory\Views\" />
     <Folder Include="Security\" />
+    <Folder Include="metadata\Functions\" />
+    <Folder Include="metadata\Stored Procedures\" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="metadata\Tables\ApplicationColumn.sql" />
-    <Build Include="metadata\Tables\Application.sql" />
-    <Build Include="metadata\Tables\ApplicationFilter.sql" />
-    <Build Include="metadata\Tables\ApplicationTable.sql" />
-    <Build Include="metadata\Tables\WindowControlType.sql" />
-    <Build Include="directory\Tables\RoleApplication.sql" />
-    <Build Include="directory\Tables\RoleApplicationTable.sql" />
-    <Build Include="directory\Tables\Role.sql" />
-    <Build Include="directory\Tables\UserRole.sql" />
-    <Build Include="metadata\Tables\ApplicationSchema.sql" />
-    <Build Include="metadata\Tables\Schema.sql" />
-    <Build Include="directory\Tables\RoleApplicationSchema.sql" />
-    <Build Include="directory\Tables\User.sql" />
-    <Build Include="dbo\Views\PkFk.sql" />
-    <Build Include="directory\Views\UserObjectPermisions.sql" />
-    <Build Include="Security\cUser.sql" />
-    <Build Include="Security\cUser_1.sql" />
-    <Build Include="Security\RoleMemberships.sql" />
-    <Build Include="Security\control.sql" />
-    <Build Include="Security\directory.sql" />
-    <Build Include="Security\metadata.sql" />
+    <Build Include="metadata\Tables\Schema_1.sql" />
+    <Build Include="metadata\Tables\WindowControlType_1.sql" />
+    <Build Include="metadata\Tables\ApplicationTableRelation.sql" />
+    <Build Include="metadata\Tables\ObjectText.sql" />
+    <Build Include="metadata\Tables\WindowObjectText.sql" />
+    <Build Include="metadata\Tables\ApplicationColumn_1.sql" />
+    <Build Include="directory\Tables\Role_1.sql" />
+    <Build Include="directory\Tables\RoleApplication_1.sql" />
+    <Build Include="directory\Tables\RoleApplicationSchema_1.sql" />
+    <Build Include="directory\Tables\RoleApplicationTable_1.sql" />
+    <Build Include="directory\Tables\User_1.sql" />
+    <Build Include="directory\Tables\UserRole_1.sql" />
+    <Build Include="metadata\Tables\Application_1.sql" />
+    <Build Include="metadata\Tables\ApplicationFilter_1.sql" />
+    <Build Include="metadata\Tables\ApplicationSchema_1.sql" />
+    <Build Include="metadata\Tables\ApplicationTable_1.sql" />
+    <Build Include="directory\Views\UserObjectPermisions_1.sql" />
+    <Build Include="Security\cUser_2.sql" />
+    <Build Include="Security\cUser_3.sql" />
+    <Build Include="Security\RoleMemberships_1.sql" />
+    <Build Include="Security\RoleMemberships_2.sql" />
+    <Build Include="metadata\Functions\GetControlType.sql" />
+    <Build Include="Security\control_1.sql" />
+    <Build Include="Security\directory_1.sql" />
+    <Build Include="Security\metadata_1.sql" />
+    <Build Include="Security\Permissions.sql" />
   </ItemGroup>
 </Project>
