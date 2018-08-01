@@ -143,8 +143,12 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Sql Scripts\" />
+    <Content Include="Sql Scripts\AddRefs.sql" />
+    <Content Include="Sql Scripts\GenericSqls.sql" />
+    <Content Include="Sql Scripts\Migrate.sql" />
+    <Content Include="Sql Scripts\wip.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
