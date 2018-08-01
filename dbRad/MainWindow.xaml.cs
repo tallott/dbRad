@@ -430,7 +430,7 @@ namespace dbRad
                                 rowKey.Name = controlName;
                                 rowKey.Style = (Style)FindResource("winTextBoxStyle");
                                 rowKey.IsEnabled = Convert.ToBoolean(controlEnabled);
-                                formData.Add(controlName,null);
+                                //formData.Add(controlName,null);
 
                                 //Binding binding = new Binding(controlName);
                                 //binding.Mode = BindingMode.TwoWay;
