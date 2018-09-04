@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Windows;
 using System.Windows.Controls;
+using Npgsql;
 
 namespace dbRad.Classes
 {
@@ -12,17 +13,17 @@ namespace dbRad.Classes
         public static void dbGetDataGridRows(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
 
             DataTable winDt = new DataTable();
-
+            
             string sqlPart;
             string sqlParam = applicationTableId;
 
             //Single row to return user defined DML SQL for DataGrid
             sqlPart =
               @"SELECT TOP 1 Dml
-                FROM control.metadata.ApplicationTable
+                FROM metadata.ApplicationTable
                 WHERE ApplicationTableId = @sqlParam";
 
             string sqlTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
@@ -32,7 +33,7 @@ namespace dbRad.Classes
             {
                 sqlPart =
                   @"SELECT FilterDefinition
-                    FROM control.metadata.ApplicationFilter
+                    FROM metadata.ApplicationFilter
                     WHERE ApplicationTableId = @sqlparam
                             AND SortOrder = 1";
             }
@@ -41,7 +42,7 @@ namespace dbRad.Classes
                 sqlParam = selectedFilter.ToString();
                 sqlPart =
                   @"SELECT FilterDefinition
-                    FROM control.metadata.ApplicationFilter
+                    FROM metadata.ApplicationFilter
                     WHERE ApplicationFilterId = @sqlparam";
             }
 
@@ -61,11 +62,11 @@ namespace dbRad.Classes
                     appDbCon.Open();
                     {
                         //Run the SQL cmd to return SQL that fills DataGrid
-                        SqlCommand execTabSql = appDbCon.CreateCommand();
+                        NpgsqlCommand execTabSql = appDbCon.CreateCommand();
                         execTabSql.CommandText = sqlTxt;
 
                         //Create an adapter and fill the grid using sql and adapater
-                        SqlDataAdapter winDa = new SqlDataAdapter(execTabSql);
+                        NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(execTabSql);
                         winDa.Fill(winDt);
                         winDg.ItemsSource = winDt.DefaultView;
 
@@ -78,7 +79,7 @@ namespace dbRad.Classes
                         int chrEnd = sqlCountText.IndexOf("FROM");
 
                         sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
-                        SqlCommand countRows = new SqlCommand(sqlTxt, appDbCon);
+                        NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, appDbCon);
                         rowCount = (int)countRows.ExecuteScalar();
                         int pageSize = Convert.ToInt32(tbFetch.Text);
                         int offSet = Convert.ToInt32(tbOffset.Text);
@@ -115,7 +116,7 @@ namespace dbRad.Classes
             List<string> columnUpdates = new List<string>();
 
             string sql = string.Empty;
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
             try
             {
                 foreach (FrameworkElement element in editStkPnl.Children)
@@ -162,9 +163,9 @@ namespace dbRad.Classes
                 }
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                sql = "INSERT INTO [" + applicationName + "].[" + schemaName + "].[" + tableName + "]" + csvColumns + csvColumnUpdates;
+                sql = "INSERT INTO [" + schemaName + "].[" + tableName + "]" + csvColumns + csvColumnUpdates;
 
-                SqlCommand dbCreateRecordSql = new SqlCommand();
+                NpgsqlCommand dbCreateRecordSql = new NpgsqlCommand();
                 dbCreateRecordSql.CommandText = sql;
                 dbCreateRecordSql.CommandType = CommandType.Text;
                 dbCreateRecordSql.Connection = appDbCon;
@@ -186,14 +187,14 @@ namespace dbRad.Classes
         public static void dbUpdateRecord(Window winNew, String applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //updates the database with values in the data edit fields
         {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
+                        string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
             string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
             string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
             string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
             string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
             string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
 
             string sql = string.Empty;
 
@@ -207,7 +208,7 @@ namespace dbRad.Classes
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
-                    sql = "UPDATE [" + applicationName + "].[" + schemaName + "].[" + tableName + "] SET ";
+                    sql = "UPDATE [" + schemaName + "].[" + tableName + "] SET ";
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
 
@@ -276,7 +277,7 @@ namespace dbRad.Classes
 
                         sql = sql.Trim(',', ' ') + " WHERE " + tableKey + " = @Id";
 
-                        SqlCommand listItemSaveSql = new SqlCommand();
+                        NpgsqlCommand listItemSaveSql = new NpgsqlCommand();
                         listItemSaveSql.CommandText = sql;
                         listItemSaveSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
                         listItemSaveSql.CommandType = CommandType.Text;
@@ -309,7 +310,7 @@ namespace dbRad.Classes
         public static void dbDeleteRecord(Window winNew, String applicationTableId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //deletes the selected row from the database
         {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
+
 
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
             string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
@@ -318,6 +319,8 @@ namespace dbRad.Classes
             string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
             string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+
             string sql = string.Empty;
             try
             {
@@ -325,9 +328,9 @@ namespace dbRad.Classes
                 DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
                 //Delete the selected row from db
 
-                sql = "DELETE FROM [" + applicationName + "].[" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
+                sql = "DELETE FROM [" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
 
-                SqlCommand delRowSql = new SqlCommand();
+                NpgsqlCommand delRowSql = new NpgsqlCommand();
                 delRowSql.CommandText = sql;
                 delRowSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
                 delRowSql.CommandType = CommandType.Text;

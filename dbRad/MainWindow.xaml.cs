@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using dbRad.Classes;
+using Npgsql;
 
 namespace dbRad
 {
@@ -57,9 +58,9 @@ namespace dbRad
 
         //Builds the main window for the appDbName
         {
-            SqlConnection ctrlAppDbCon = new SqlConnection(Config.appDb.ToString());
-            SqlConnection ctrlSchDbCon = new SqlConnection(Config.appDb.ToString());
-            SqlConnection ctrlTabDbCon = new SqlConnection(Config.appDb.ToString());
+            NpgsqlConnection ctrlAppDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection ctrlSchDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection ctrlTabDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
 
             //Get configured Application database
             string appDbName;
@@ -101,12 +102,12 @@ namespace dbRad
             //Open Menu Items are Dynamicly populated with application/schema/table names in control tables;
             try
             {
-                SqlCommand getAppList = new SqlCommand();
+                NpgsqlCommand getAppList = new NpgsqlCommand();
                 getAppList.CommandText =
                       @"SELECT DISTINCT
                            ApplicationId,
                            ApplicationName
-                    FROM control.directory.UserObjectPermisions
+                    FROM directory.UserObjectPermisions
                     WHERE UserName = @UserName
                           AND UserPassword = @UserPassword
                     ORDER BY ApplicationName";
@@ -115,30 +116,33 @@ namespace dbRad
                 getAppList.Parameters.AddWithValue("@UserName", userName);
                 getAppList.Parameters.AddWithValue("@UserPassword", userPassword);
 
+                //SqlConnection ctrlAppDbCon = new SqlConnection(ApplicationEnviroment.ConnectionString("Control"));
                 getAppList.Connection = ctrlAppDbCon;
-
+                //MessageBox.Show(ApplicationEnviroment.ConnectionString("Control"));
                 ctrlAppDbCon.Open();
 
-                SqlDataReader appReader = getAppList.ExecuteReader();
+                NpgsqlDataReader appReader = getAppList.ExecuteReader();
                 while (appReader.Read())
                 {
                     string appId = appReader["ApplicationId"].ToString();
                     appDbName = appReader["ApplicationName"].ToString();
+                   
                     MenuItem AppOpen = new MenuItem();
                     AppOpen.Header = appDbName;
                     openMenu.Items.Add(AppOpen);
                     {
-                        SqlCommand getSchList = new SqlCommand();
+                        NpgsqlCommand getSchList = new NpgsqlCommand();
                         getSchList.CommandText =
                               @"SELECT DISTINCT ApplicationSchemaId,
-                           SchemaLabel
-                    FROM control.directory.UserObjectPermisions
-                    WHERE ApplicationName = @appDbName
-                      AND UserName = @UserName
-                      AND UserPassword = @UserPassword
-                    ORDER BY SchemaLabel";
+                                       SchemaLabel
+                                FROM directory.UserObjectPermisions
+                                WHERE ApplicationName = @appDbName
+                                  AND UserName = @UserName
+                                  AND UserPassword = @UserPassword
+                                ORDER BY SchemaLabel";
 
-                        getAppList.Connection = ctrlAppDbCon;
+                       //SqlConnection ctrlSchDbCon   = new SqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+                        //getAppList.Connection = ctrlAppDbCon;
                         ctrlSchDbCon.Open();
                         getSchList.CommandType = CommandType.Text;
                         getSchList.Parameters.AddWithValue("@appDbName", appDbName);
@@ -146,21 +150,21 @@ namespace dbRad
                         getSchList.Parameters.AddWithValue("@UserPassword", userPassword);
                         getSchList.Connection = ctrlSchDbCon;
                         {
-                            SqlDataReader schReader = getSchList.ExecuteReader();
+                            NpgsqlDataReader schReader = getSchList.ExecuteReader();
 
                             while (schReader.Read())
                             {
-                                string schId = schReader["ApplicationSchemaId"].ToString();
+                                int schId = Convert.ToInt16(schReader["ApplicationSchemaId"]);
                                 string schName = schReader["SchemaLabel"].ToString();
                                 MenuItem schemaOpen = new MenuItem();
                                 schemaOpen.Header = schName;
                                 AppOpen.Items.Add(schemaOpen);
-                                SqlCommand getTabList = new SqlCommand();
+                                NpgsqlCommand getTabList = new NpgsqlCommand();
 
                                 getTabList.CommandText =
                                       @"SELECT DISTINCT ApplicationTableId,
                                                 TableLabel
-                                        FROM control.directory.UserObjectPermisions
+                                        FROM directory.UserObjectPermisions
                                         WHERE ApplicationName = @appDbName
                                           AND UserName = @UserName
                                           AND UserPassword = @UserPassword
@@ -168,14 +172,14 @@ namespace dbRad
                                         ORDER BY TableLabel";
 
                                 getTabList.CommandType = CommandType.Text;
-
+                                
                                 getTabList.Connection = ctrlTabDbCon;
                                 ctrlTabDbCon.Open();
                                 getTabList.Parameters.AddWithValue("@appDbName", appDbName);
                                 getTabList.Parameters.AddWithValue("@UserName", userName);
                                 getTabList.Parameters.AddWithValue("@UserPassword", userPassword);
                                 getTabList.Parameters.AddWithValue("@ApplicationSchemaId", schId);
-                                SqlDataReader tabReader = getTabList.ExecuteReader();
+                                NpgsqlDataReader tabReader = getTabList.ExecuteReader();
                                 while (tabReader.Read())
                                 {
                                     string applicationTableId = tabReader["ApplicationTableId"].ToString();
@@ -202,14 +206,13 @@ namespace dbRad
                 Window config = new Config();
                 config.Show();
             };
-            this.Show();
+            Show();
         }
 
         private void winConstruct(string applicationTableId)
         //Builds the window for the selected table 
         {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-            SqlConnection ctrlDbCon = new SqlConnection(Config.appDb.ToString());
+           
 
             string controlName = string.Empty;
             string controlLabel = string.Empty;
@@ -228,6 +231,9 @@ namespace dbRad
             string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
             string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
             string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
 
             //Create a new window - this is a window based on an underlying database table
             Window winNew = new Window();
@@ -350,11 +356,11 @@ namespace dbRad
 
             //Populate Data tables
             //Window Filter - Gets the list of filters for the window based on the underlying database table
-            SqlCommand getFltRows = new SqlCommand();
+            NpgsqlCommand getFltRows = new NpgsqlCommand();
             getFltRows.CommandText =
                 @"SELECT ApplicationFilterId AS valueMember,
                         FilterName AS displayMember
-                FROM control.metadata.ApplicationFilter
+                FROM metadata.ApplicationFilter
                 WHERE ApplicationTableId = @applicationTableId
                 ORDER BY SortOrder";
 
@@ -364,7 +370,7 @@ namespace dbRad
 
             ctrlDbCon.Open();
             {
-                SqlDataAdapter fltAdapter = new SqlDataAdapter(getFltRows);
+                NpgsqlDataAdapter fltAdapter = new NpgsqlDataAdapter(getFltRows);
                 DataTable fltDataTable = new DataTable();
                 fltAdapter.Fill(fltDataTable);
                 winFlt.ItemsSource = fltDataTable.DefaultView;
@@ -377,7 +383,7 @@ namespace dbRad
             winFlt.SelectedIndex = 0;
 
             //Add controls to the window editing area Stack panel based on underlying database columns
-            SqlCommand getColList = new SqlCommand();
+            NpgsqlCommand getColList = new NpgsqlCommand();
             getColList.CommandText =
                   @"SELECT c.ColumnName,
                            ISNULL(c.ColumnLable, c.ColumnName) AS ColumnLabel,
@@ -386,8 +392,8 @@ namespace dbRad
                            c.OrderBy,
                            ct.WindowControlType,
                            c.WindowControlEnabled
-                    FROM control.metadata.ApplicationColumn c
-                         INNER JOIN control.metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
+                    FROM metadata.ApplicationColumn c
+                         INNER JOIN metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
                     WHERE ApplicationTableId = @applicationTableId
                     ORDER BY c.WindowLayoutOrder";
 
@@ -400,7 +406,7 @@ namespace dbRad
             try
             {
                 {
-                    SqlDataReader getColListReader = getColList.ExecuteReader();
+                    NpgsqlDataReader getColListReader = getColList.ExecuteReader();
                     while (getColListReader.Read())
                     {
                         controlName = getColListReader["ColumnName"].ToString();
@@ -514,7 +520,7 @@ namespace dbRad
 
                             case "COMBO":
                                 ComboBox cb = new ComboBox();
-                                SqlCommand getComboRows = new SqlCommand();
+                                NpgsqlCommand getComboRows = new NpgsqlCommand();
                                 string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
 
                                 cb.Name = controlName;
@@ -560,7 +566,7 @@ namespace dbRad
                                 appDbCon.Open();
 
                                 {
-                                    SqlDataAdapter comboAdapter = new SqlDataAdapter(getComboRows);
+                                    NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
                                     DataTable comboDataTable = new DataTable();
 
                                     comboAdapter.Fill(comboDataTable);

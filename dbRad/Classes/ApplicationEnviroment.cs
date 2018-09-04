@@ -37,7 +37,15 @@ namespace dbRad.Classes
             AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
             return AssemblyName;
         }
-     
+
+        public static string ConnectionString(String databaseName)
+        {
+            string ConnectionString = Config.appDb.ToString();
+            ConnectionString = ConnectionString.Replace("$DatabaseName$", databaseName);
+            return ConnectionString;
+        }
+
+        
         public static void EnsureDirSlash(ref String Directory)
         {
             if (Directory != null)

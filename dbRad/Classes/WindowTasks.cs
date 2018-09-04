@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Npgsql;
 
 namespace dbRad.Classes
 {
@@ -13,12 +14,12 @@ namespace dbRad.Classes
         public static WindowMetaList winMetadataList(string tabId)
         //Returns the list of metadata values for a window
         {
-            SqlConnection ctrlDbCon = new SqlConnection(Config.appDb.ToString());
+            NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
 
             WindowMetaList metaList = new WindowMetaList();
 
             //get the table string values
-            SqlCommand getTab = new SqlCommand();
+            NpgsqlCommand getTab = new NpgsqlCommand();
 
             getTab.CommandText =
               @"SELECT a.ApplicationName,
@@ -28,18 +29,18 @@ namespace dbRad.Classes
                        s.SchemaLabel,
                        t.TableKey,
                        t.ApplicationTableId
-                FROM control.metadata.Application a
-                     INNER JOIN control.metadata.ApplicationSchema apps ON a.ApplicationId = apps.ApplicationId
-                     INNER JOIN control.metadata.ApplicationTable t ON t.ApplicationSchemaId = apps.ApplicationSchemaId
-                     INNER JOIN control.metadata.[Schema] s ON apps.SchemaId = s.SchemaId
-                                WHERE ApplicationTableId = @tabId";
+                FROM metadata.Application a
+                     INNER JOIN metadata.ApplicationSchema apps ON a.ApplicationId = apps.ApplicationId
+                     INNER JOIN metadata.ApplicationTable t ON t.ApplicationSchemaId = apps.ApplicationSchemaId
+                     INNER JOIN metadata.[Schema] s ON apps.SchemaId = s.SchemaId
+                WHERE ApplicationTableId = @tabId";
 
             getTab.CommandType = CommandType.Text;
             getTab.Parameters.AddWithValue("@tabId", tabId);
             getTab.Connection = ctrlDbCon;
             ctrlDbCon.Open();
 
-            SqlDataReader getTabReader = getTab.ExecuteReader();
+            NpgsqlDataReader getTabReader = getTab.ExecuteReader();
             getTabReader.Read();
             
             metaList.ApplicationName = getTabReader["ApplicationName"].ToString();

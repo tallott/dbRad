@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Npgsql;
 
 namespace dbRad.Classes
 {
@@ -166,8 +167,6 @@ namespace dbRad.Classes
         public static DataTable dbGetDataRow(string applicationTableId, string id, StackPanel editStkPnl)
         //Loads a single row from the database into a table for the record for the selected ID
         {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
             string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
             string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
@@ -175,11 +174,13 @@ namespace dbRad.Classes
             string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
             string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
-            string sql = "SELECT * FROM [" + applicationName + "].[" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+
+            string sql = "SELECT * FROM [" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
 
             DataTable winSelectedRowDataTable = new DataTable();
 
-            SqlCommand winSelectedRowSql = new SqlCommand();
+            NpgsqlCommand winSelectedRowSql = new NpgsqlCommand();
             winSelectedRowSql.CommandText = sql;
             winSelectedRowSql.Parameters.AddWithValue("@Id", id);
             winSelectedRowSql.CommandType = CommandType.Text;
@@ -188,7 +189,7 @@ namespace dbRad.Classes
             appDbCon.Open();
             try
             {
-                SqlDataAdapter winDa = new SqlDataAdapter(winSelectedRowSql);
+                NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(winSelectedRowSql);
                 winDa.Fill(winSelectedRowDataTable);
             }
             catch (Exception ex)
@@ -215,9 +216,9 @@ namespace dbRad.Classes
         //Single row to return user defined DML SQL for DataGrid
         {
 
-            SqlConnection controlDbCon = new SqlConnection(Config.appDb.ToString());
+            NpgsqlConnection controlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
 
-            SqlCommand getTabSql = new SqlCommand();
+            NpgsqlCommand getTabSql = new NpgsqlCommand();
 
             getTabSql.CommandText = sqlpart;
             getTabSql.Parameters.AddWithValue("@sqlparam", sqlParam);
@@ -234,10 +235,10 @@ namespace dbRad.Classes
         }
 
 
-        public static DataTable winPopulateCombo(ComboBox cb, string applicationTableId, string colname, SqlConnection ctrlDbCon, SqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
+        public static DataTable winPopulateCombo(ComboBox cb, string applicationTableId, string colname, NpgsqlConnection ctrlDbCon, NpgsqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
         {
-            SqlCommand getColList = new SqlCommand();
-            SqlCommand getComboRows = new SqlCommand();
+            NpgsqlCommand getColList = new NpgsqlCommand();
+            NpgsqlCommand getComboRows = new NpgsqlCommand();
 
             DataTable comboDataTable = new DataTable();
 
@@ -273,7 +274,7 @@ namespace dbRad.Classes
 
             ctrlDbCon.Open();
             {
-                SqlDataReader getColListReader = getColList.ExecuteReader();
+                NpgsqlDataReader getColListReader = getColList.ExecuteReader();
                 getColListReader.Read();
                 controlName = getColListReader["ColumnName"].ToString();
                 controlLabel = getColListReader["ColumnLabel"].ToString();
@@ -299,7 +300,7 @@ namespace dbRad.Classes
 
             appDbCon.Open();
             {
-                SqlDataAdapter comboAdapter = new SqlDataAdapter(getComboRows);
+                NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
 
                 comboAdapter.Fill(comboDataTable);
                 cb.ItemsSource = comboDataTable.DefaultView;
