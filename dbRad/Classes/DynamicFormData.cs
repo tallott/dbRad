@@ -9,7 +9,7 @@ namespace dbRad.Classes
     {
         private Dictionary<string, object> Fields = new Dictionary<string, object>();
 
-        public int Count { get { return Fields.Keys.Count; } }
+        public Int32 Count { get { return Fields.Keys.Count; } }
 
         public void Add(string name, string val = null)
         {

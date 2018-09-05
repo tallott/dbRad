@@ -13,13 +13,14 @@ namespace dbRad.Classes
 {
     class WindowDataOps
     {
-        public static string SubstituteWindowParameters(StackPanel editStkPnl, String targetTxt, Dictionary<string, string> columnValues)
+        public static string SubstituteWindowParameters( String targetTxt, Dictionary<string, string> columnValues)
         //Repalces parameter values with control values from editStkPnl
         {
             string x = columnValues.Count.ToString();
             foreach (string key in columnValues.Keys)
             {
-                string s = "$" + key + "$";
+                string s = "~" + key + "~";
+                s = s.ToLower();
                 string r;
                 string columnValue = columnValues[key];
 
@@ -27,17 +28,15 @@ namespace dbRad.Classes
                 if ((columnValue ?? "") != "") //supplied
                 {
                     r = columnValue;
-
                 }
                 else //Not supplied
                 {
-                    r = "''";
+                    r = "0";
                 }
-                //replace the $COLUMN_NAME$ parameter with the supplied value
-                if (targetTxt.Contains(s))
+                //replace the |COLUMN_NAME| parameter with the supplied value
+                if (targetTxt.ToLower().Contains(s))
                 {
-                    targetTxt = targetTxt.Replace(s, r);
-
+                    targetTxt = targetTxt.ToLower().Replace(s, r);
                 }
             }
 
@@ -144,14 +143,14 @@ namespace dbRad.Classes
             controlValues[dtp.Name] = "'" + dtp.Text + "'";
         }
 
-        public static void winDataGridClicked(String applicationTableId, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        public static void winDataGridClicked(Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValues)
         //gets the id of the row selected and loads the edit fileds with the database values
         {
-            string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+            Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
             try
             {
 
-                if (selectedRowIdVal != null)
+                if (selectedRowIdVal != 0)
                 {
                     DataTable winSelectedRowDataTable = dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
                     WindowDataOps.winLoadDataRow(editStkPnl, winSelectedRowDataTable, controlValues);
@@ -164,7 +163,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static DataTable dbGetDataRow(string applicationTableId, string id, StackPanel editStkPnl)
+        public static DataTable dbGetDataRow(Int32 applicationTableId, Int32 id, StackPanel editStkPnl)
         //Loads a single row from the database into a table for the record for the selected ID
         {
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
@@ -176,7 +175,7 @@ namespace dbRad.Classes
 
             NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
 
-            string sql = "SELECT * FROM [" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
+            string sql = "SELECT * FROM " + schemaName + "." + tableName + " WHERE " + tableKey + " = @Id";
 
             DataTable winSelectedRowDataTable = new DataTable();
 
@@ -212,7 +211,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static string winDataGridGetBaseSql(string sqlpart, string sqlParam)
+        public static string winDataGridGetBaseSql(string sqlpart, Int32 sqlParam)
         //Single row to return user defined DML SQL for DataGrid
         {
 
@@ -235,7 +234,7 @@ namespace dbRad.Classes
         }
 
 
-        public static DataTable winPopulateCombo(ComboBox cb, string applicationTableId, string colname, NpgsqlConnection ctrlDbCon, NpgsqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
+        public static DataTable winPopulateCombo(ComboBox cb, Int32 applicationTableId, string colname, NpgsqlConnection ctrlDbCon, NpgsqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
         {
             NpgsqlCommand getColList = new NpgsqlCommand();
             NpgsqlCommand getComboRows = new NpgsqlCommand();
@@ -255,14 +254,14 @@ namespace dbRad.Classes
 
             getColList.CommandText =
                   @"SELECT c.ColumnName,
-                           ISNULL(c.ColumnLable, c.ColumnName) AS ColumnLabel,
+                           COALESCE(c.ColumnLable, c.ColumnName) AS ColumnLabel,
                            c.RowSource,
                            c.Filter,
                            c.OrderBy,
                            ct.WindowControlType,
                            c.WindowControlEnabled
-                    FROM control.metadata.ApplicationColumn c
-                         INNER JOIN control.metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
+                    FROM metadata.ApplicationColumn c
+                         INNER JOIN metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
                     WHERE c.ApplicationTableId = @applicationTableId
                     AND c.ColumnName = @colname
                     ORDER BY c.WindowLayoutOrder";
@@ -292,7 +291,7 @@ namespace dbRad.Classes
                 controlOrderBy = "\nORDER BY " + controlOrderBy;
 
             controlRowSource += controlOrderBy;
-            controlRowSource = WindowDataOps.SubstituteWindowParameters(editStkPnl, controlRowSource, controlValues);
+            controlRowSource = WindowDataOps.SubstituteWindowParameters( controlRowSource, controlValues);
 
             getComboRows.CommandText = controlRowSource;
             getComboRows.CommandType = CommandType.Text;

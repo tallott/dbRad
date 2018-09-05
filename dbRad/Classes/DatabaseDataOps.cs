@@ -10,7 +10,7 @@ namespace dbRad.Classes
 {
     class DatabaseDataOps
     {
-        public static void dbGetDataGridRows(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbGetDataGridRows(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
             NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
@@ -18,11 +18,11 @@ namespace dbRad.Classes
             DataTable winDt = new DataTable();
             
             string sqlPart;
-            string sqlParam = applicationTableId;
+            Int32 sqlParam = applicationTableId;
 
             //Single row to return user defined DML SQL for DataGrid
             sqlPart =
-              @"SELECT TOP 1 Dml
+              @"SELECT Dml
                 FROM metadata.ApplicationTable
                 WHERE ApplicationTableId = @sqlParam";
 
@@ -39,7 +39,7 @@ namespace dbRad.Classes
             }
             else //Custom filter selected
             {
-                sqlParam = selectedFilter.ToString();
+                sqlParam = Convert.ToInt32(selectedFilter);
                 sqlPart =
                   @"SELECT FilterDefinition
                     FROM metadata.ApplicationFilter
@@ -50,8 +50,8 @@ namespace dbRad.Classes
 
             winNew.Resources.Remove("winFilter");
             winNew.Resources.Add("winFilter", fltTxt);
-            //Build where clause with replacement values for $COLUMN_NAME$ parameters  
-            fltTxt = WindowDataOps.SubstituteWindowParameters(editStkPnl, fltTxt, columnValues);
+            //Build where clause with replacement values for |COLUMN_NAME| parameters  
+            fltTxt = WindowDataOps.SubstituteWindowParameters( fltTxt, columnValues);
             sqlTxt = sqlTxt + " WHERE " + fltTxt;
             string sqlCountText = sqlTxt;
             sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
@@ -73,16 +73,16 @@ namespace dbRad.Classes
                         //set the page counter
                         string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
                         string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-                        int rowCount = 0;
+                        Int32 rowCount = 0;
 
-                        int chrStart = sqlCountText.IndexOf("SELECT") + 6;
-                        int chrEnd = sqlCountText.IndexOf("FROM");
+                        Int32 chrStart = sqlCountText.IndexOf("SELECT") + 6;
+                        Int32 chrEnd = sqlCountText.IndexOf("FROM");
 
                         sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
                         NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, appDbCon);
-                        rowCount = (int)countRows.ExecuteScalar();
-                        int pageSize = Convert.ToInt32(tbFetch.Text);
-                        int offSet = Convert.ToInt32(tbOffset.Text);
+                        rowCount = Convert.ToInt32(countRows.ExecuteScalar());
+                        Int32 pageSize = Convert.ToInt32(tbFetch.Text);
+                        Int32 offSet = Convert.ToInt32(tbOffset.Text);
 
                         string pageCount = Convert.ToString((rowCount / pageSize) + 1);
                         string pageNumber = Convert.ToString((offSet / pageSize) + 1);
@@ -102,7 +102,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static void dbCreateRecord(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbCreateRecord(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Creates a new record in the db
         {
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
@@ -163,7 +163,7 @@ namespace dbRad.Classes
                 }
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                sql = "INSERT INTO [" + schemaName + "].[" + tableName + "]" + csvColumns + csvColumnUpdates;
+                sql = "INSERT INTO " + schemaName + "." + tableName + " " + csvColumns + csvColumnUpdates;
 
                 NpgsqlCommand dbCreateRecordSql = new NpgsqlCommand();
                 dbCreateRecordSql.CommandText = sql;
@@ -184,7 +184,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static void dbUpdateRecord(Window winNew, String applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbUpdateRecord(Window winNew, Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //updates the database with values in the data edit fields
         {
                         string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
@@ -200,7 +200,7 @@ namespace dbRad.Classes
 
             try
             {
-                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+                Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
 
                 DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
 
@@ -208,7 +208,7 @@ namespace dbRad.Classes
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
-                    sql = "UPDATE [" + schemaName + "].[" + tableName + "] SET ";
+                    sql = "UPDATE " + schemaName + "." + tableName + " SET ";
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
 
@@ -290,7 +290,7 @@ namespace dbRad.Classes
                         dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
 
                         TextBox tabIdCol = (TextBox)editStkPnl.FindName(tableKey);
-                        selectedRowIdVal = tabIdCol.Text;
+                        selectedRowIdVal = Convert.ToInt32(tabIdCol.Text);
 
                         WindowTasks.winDataGridSelectRow(selectedRowIdVal, winDg);
 
@@ -307,7 +307,7 @@ namespace dbRad.Classes
             };
         }
 
-        public static void dbDeleteRecord(Window winNew, String applicationTableId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbDeleteRecord(Window winNew, Int32 applicationTableId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //deletes the selected row from the database
         {
 
@@ -324,11 +324,11 @@ namespace dbRad.Classes
             string sql = string.Empty;
             try
             {
-                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+                Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
                 DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
                 //Delete the selected row from db
 
-                sql = "DELETE FROM [" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
+                sql = "DELETE FROM " + schemaName + "." + tableName + " WHERE " + tableKey + " = @Id";
 
                 NpgsqlCommand delRowSql = new NpgsqlCommand();
                 delRowSql.CommandText = sql;

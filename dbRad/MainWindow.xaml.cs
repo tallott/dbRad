@@ -154,7 +154,7 @@ namespace dbRad
 
                             while (schReader.Read())
                             {
-                                int schId = Convert.ToInt16(schReader["ApplicationSchemaId"]);
+                                Int32 schId = Convert.ToInt32(schReader["ApplicationSchemaId"]);
                                 string schName = schReader["SchemaLabel"].ToString();
                                 MenuItem schemaOpen = new MenuItem();
                                 schemaOpen.Header = schName;
@@ -182,7 +182,7 @@ namespace dbRad
                                 NpgsqlDataReader tabReader = getTabList.ExecuteReader();
                                 while (tabReader.Read())
                                 {
-                                    string applicationTableId = tabReader["ApplicationTableId"].ToString();
+                                    Int32 applicationTableId = Convert.ToInt32(tabReader["ApplicationTableId"]);
                                     string tabLable = tabReader["TableLabel"].ToString();
                                     MenuItem schemaOpenItem = new MenuItem();
                                     schemaOpenItem.Header = tabLable;
@@ -209,7 +209,7 @@ namespace dbRad
             Show();
         }
 
-        private void winConstruct(string applicationTableId)
+        private void winConstruct(Int32 applicationTableId)
         //Builds the window for the selected table 
         {
            
@@ -386,7 +386,7 @@ namespace dbRad
             NpgsqlCommand getColList = new NpgsqlCommand();
             getColList.CommandText =
                   @"SELECT c.ColumnName,
-                           ISNULL(c.ColumnLable, c.ColumnName) AS ColumnLabel,
+                           COALESCE(c.ColumnLable, c.ColumnName) AS ColumnLabel,
                            c.RowSource,
                            c.Filter,
                            c.OrderBy,
@@ -521,7 +521,7 @@ namespace dbRad
                             case "COMBO":
                                 ComboBox cb = new ComboBox();
                                 NpgsqlCommand getComboRows = new NpgsqlCommand();
-                                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+                                Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
 
                                 cb.Name = controlName;
                                 cb.Style = (Style)FindResource("winComboBoxStyle");
@@ -557,7 +557,7 @@ namespace dbRad
                                     controlOrderBy = "\nORDER BY " + controlOrderBy;
 
                                 controlRowSource += controlOrderBy;
-                                controlRowSource = WindowDataOps.SubstituteWindowParameters(editStkPnl, controlRowSource, controlValues);
+                                controlRowSource = WindowDataOps.SubstituteWindowParameters( controlRowSource, controlValues);
 
                                 getComboRows.CommandText = controlRowSource;
                                 getComboRows.CommandType = CommandType.Text;

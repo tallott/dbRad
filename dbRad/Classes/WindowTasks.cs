@@ -11,7 +11,7 @@ namespace dbRad.Classes
 {
     public partial class WindowTasks
     {
-        public static WindowMetaList winMetadataList(string tabId)
+        public static WindowMetaList winMetadataList(Int32 tabId)
         //Returns the list of metadata values for a window
         {
             NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
@@ -32,7 +32,7 @@ namespace dbRad.Classes
                 FROM metadata.Application a
                      INNER JOIN metadata.ApplicationSchema apps ON a.ApplicationId = apps.ApplicationId
                      INNER JOIN metadata.ApplicationTable t ON t.ApplicationSchemaId = apps.ApplicationSchemaId
-                     INNER JOIN metadata.[Schema] s ON apps.SchemaId = s.SchemaId
+                     INNER JOIN metadata.Schema s ON apps.SchemaId = s.SchemaId
                 WHERE ApplicationTableId = @tabId";
 
             getTab.CommandType = CommandType.Text;
@@ -55,19 +55,19 @@ namespace dbRad.Classes
 
         }
 
-        public static string dataGridGetId(DataGrid winDg)
+        public static Int32 dataGridGetId(DataGrid winDg)
         //Gets the Id of the selected grid row
         {
-            string selectedRowIdVal;
+            Int32 selectedRowIdVal;
             try
             {
                 DataRowView drv = (DataRowView)winDg.SelectedValue;
-                selectedRowIdVal = drv.Row.ItemArray[0].ToString();
+                selectedRowIdVal = Convert.ToInt32( drv.Row.ItemArray[0]);
                 return selectedRowIdVal;
             }
             catch
             {
-                selectedRowIdVal = null;
+                selectedRowIdVal = 0;
                 return selectedRowIdVal;
             }
         }
@@ -195,7 +195,7 @@ namespace dbRad.Classes
             tbFetch.Text = "25";
         }
 
-        public static void winDataGridSelectRow(string id, DataGrid winDg)
+        public static void winDataGridSelectRow(Int32 id, DataGrid winDg)
         //Selects the row in the data grid for the current id
         {
             winDg.UpdateLayout();
