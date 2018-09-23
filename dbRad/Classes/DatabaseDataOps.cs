@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Windows;
 using System.Windows.Controls;
 using Npgsql;
@@ -10,13 +9,14 @@ namespace dbRad.Classes
 {
     class DatabaseDataOps
     {
-        public static void dbGetDataGridRows(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbGetDataGridRows(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(WindowTasks.winMetadataList(applicationTableId).ApplicationName));
 
             DataTable winDt = new DataTable();
-            
+
             string sqlPart;
             Int32 sqlParam = applicationTableId;
 
@@ -39,7 +39,7 @@ namespace dbRad.Classes
             }
             else //Custom filter selected
             {
-                sqlParam = Convert.ToInt32(selectedFilter);
+                sqlParam = selectedFilter;
                 sqlPart =
                   @"SELECT FilterDefinition
                     FROM metadata.ApplicationFilter
@@ -51,18 +51,20 @@ namespace dbRad.Classes
             winNew.Resources.Remove("winFilter");
             winNew.Resources.Add("winFilter", fltTxt);
             //Build where clause with replacement values for |COLUMN_NAME| parameters  
-            fltTxt = WindowDataOps.SubstituteWindowParameters( fltTxt, columnValues);
+            fltTxt = WindowDataOps.SubstituteWindowParameters(fltTxt, controlValues);
             sqlTxt = sqlTxt + " WHERE " + fltTxt;
             string sqlCountText = sqlTxt;
             sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
 
+
             try
             {
                 {
-                    appDbCon.Open();
+                    controlDb.Open();
+                    applicationDb.Open();
                     {
                         //Run the SQL cmd to return SQL that fills DataGrid
-                        NpgsqlCommand execTabSql = appDbCon.CreateCommand();
+                        NpgsqlCommand execTabSql = applicationDb.CreateCommand();
                         execTabSql.CommandText = sqlTxt;
 
                         //Create an adapter and fill the grid using sql and adapater
@@ -79,7 +81,7 @@ namespace dbRad.Classes
                         Int32 chrEnd = sqlCountText.IndexOf("FROM");
 
                         sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
-                        NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, appDbCon);
+                        NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, applicationDb);
                         rowCount = Convert.ToInt32(countRows.ExecuteScalar());
                         Int32 pageSize = Convert.ToInt32(tbFetch.Text);
                         Int32 offSet = Convert.ToInt32(tbOffset.Text);
@@ -91,14 +93,16 @@ namespace dbRad.Classes
                         tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
                         //Define the grid columns
 
-                        appDbCon.Close();
+                        controlDb.Close();
+                        applicationDb.Close();
                     }
                 }
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "ERROR in Filter SQL:" + ex.Message, sqlTxt);
-                appDbCon.Close();
+                controlDb.Close();
+                applicationDb.Close();
             }
         }
 
@@ -116,29 +120,41 @@ namespace dbRad.Classes
             List<string> columnUpdates = new List<string>();
 
             string sql = string.Empty;
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
             try
             {
                 foreach (FrameworkElement element in editStkPnl.Children)
                 {
-                    if (element.Name != tableKey)
-                    {
+                    string ctlType = element.GetType().Name;
 
-                        string ctlType = element.GetType().Name;
-                        // MessageBox.Show(element.Name);
+                    if (element.Name != tableKey & ctlType != "Lable")
+                    {
                         switch (ctlType)
                         {
                             case "TextBox":
                                 TextBox tb = (TextBox)editStkPnl.FindName(element.Name);
                                 columns.Add(element.Name);
-                                columnUpdates.Add("'" + tb.Text + "'");
-                                break;
-                            case "ComboBox":
+                                if (tb.Tag.ToString() != "NUM")
+                                {
+                                    columnUpdates.Add("'" + tb.Text + "'");
+                                }
+                                else
+                                {
 
+                                    if (tb.Text == "")
+                                    {
+                                        tb.Text = "0";
+                                    }
+                                    columnUpdates.Add(tb.Text);
+                                }
+                                break;
+
+                            case "ComboBox":
                                 ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
                                 columns.Add(element.Name);
                                 columnUpdates.Add(cb.SelectedValue.ToString());
                                 break;
+
                             case "DatePicker":
                                 DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
                                 columns.Add(element.Name);
@@ -152,11 +168,13 @@ namespace dbRad.Classes
                                 }
 
                                 break;
+
                             case "CheckBox":
                                 CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
                                 columns.Add(element.Name);
                                 columnUpdates.Add(((bool)chk.IsChecked ? 1 : 0).ToString());
                                 break;
+
                         };
 
                     }
@@ -168,11 +186,11 @@ namespace dbRad.Classes
                 NpgsqlCommand dbCreateRecordSql = new NpgsqlCommand();
                 dbCreateRecordSql.CommandText = sql;
                 dbCreateRecordSql.CommandType = CommandType.Text;
-                dbCreateRecordSql.Connection = appDbCon;
+                dbCreateRecordSql.Connection = applicationDb;
 
-                appDbCon.Open();
+                applicationDb.Open();
                 dbCreateRecordSql.ExecuteNonQuery();
-                appDbCon.Close();
+                applicationDb.Close();
 
                 dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
 
@@ -180,21 +198,21 @@ namespace dbRad.Classes
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Insert Record:" + ex.Message, sql);
-                appDbCon.Close();
+                applicationDb.Close();
             }
         }
 
         public static void dbUpdateRecord(Window winNew, Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //updates the database with values in the data edit fields
         {
-                        string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
+            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
             string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
             string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
             string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
             string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
             string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
 
             string sql = string.Empty;
 
@@ -216,7 +234,6 @@ namespace dbRad.Classes
 
                         //Determine the Type of control
                         object obj = editStkPnl.FindName(col.ColumnName);
-
                         string ctlName = obj.GetType().Name;
                         //Use Type to work out how to process value;
                         switch (ctlName)
@@ -226,9 +243,21 @@ namespace dbRad.Classes
 
                                 if (tb.Text.ToString() != row[col].ToString())
                                 {
-                                    sql = sql + col.ColumnName + " = '" + tb.Text + "', ";
+                                    if (tb.Tag.ToString() != "NUM")
+                                    {
+                                        sql = sql + col.ColumnName + " = '" + tb.Text + "', ";
+
+                                    }
+                                    else
+                                    {
+                                        if (row[col].ToString() == "")
+                                        {
+                                            tb.Text = "0";
+                                        }
+                                        sql = sql + col.ColumnName + " = " + tb.Text + ", ";
+                                    }
                                     isDirty = true;
-                                };
+                                }
                                 break;
 
                             case "ComboBox":
@@ -281,15 +310,15 @@ namespace dbRad.Classes
                         listItemSaveSql.CommandText = sql;
                         listItemSaveSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
                         listItemSaveSql.CommandType = CommandType.Text;
-                        listItemSaveSql.Connection = appDbCon;
+                        listItemSaveSql.Connection = applicationDb;
 
-                        appDbCon.Open();
+                        applicationDb.Open();
                         listItemSaveSql.ExecuteNonQuery();
-                        appDbCon.Close();
+                        applicationDb.Close();
 
                         dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
 
-                        TextBox tabIdCol = (TextBox)editStkPnl.FindName(tableKey);
+                        TextBox tabIdCol = (TextBox)editStkPnl.FindName(tableKey.ToLower());
                         selectedRowIdVal = Convert.ToInt32(tabIdCol.Text);
 
                         WindowTasks.winDataGridSelectRow(selectedRowIdVal, winDg);
@@ -303,7 +332,7 @@ namespace dbRad.Classes
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Save Record:" + ex.Message, sql);
-                appDbCon.Close();
+                applicationDb.Close();
             };
         }
 
@@ -319,7 +348,7 @@ namespace dbRad.Classes
             string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
             string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
 
             string sql = string.Empty;
             try
@@ -334,11 +363,11 @@ namespace dbRad.Classes
                 delRowSql.CommandText = sql;
                 delRowSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
                 delRowSql.CommandType = CommandType.Text;
-                delRowSql.Connection = appDbCon;
+                delRowSql.Connection = applicationDb;
 
-                appDbCon.Open();
+                applicationDb.Open();
                 delRowSql.ExecuteNonQuery();
-                appDbCon.Close();
+                applicationDb.Close();
 
                 WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
 
@@ -348,7 +377,7 @@ namespace dbRad.Classes
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Delete Record:" + ex.Message, sql);
-                appDbCon.Close();
+                applicationDb.Close();
             };
         }
 

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -165,7 +163,7 @@ namespace dbRad.Classes
                         {
                             case true:
 
-                                if (!filterList.Contains(cb.Name))
+                                if (!filterList.ToLower().Contains(cb.Name))
                                 {
                                     cb.SelectedValue = null;
                                 }
@@ -205,7 +203,9 @@ namespace dbRad.Classes
                 {
                     DataGridRow row = (DataGridRow)winDg.ItemContainerGenerator.ContainerFromIndex(i);
                     TextBlock cellContent = winDg.Columns[0].GetCellContent(row) as TextBlock;
-                    if (cellContent != null && cellContent.Text.Equals(id))
+                    
+                   
+                    if (cellContent != null && cellContent.Text.Equals(id.ToString()))
                     {
                         object item = winDg.Items[i];
                         winDg.SelectedItem = item;

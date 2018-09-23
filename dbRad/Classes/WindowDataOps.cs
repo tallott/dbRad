@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using Npgsql;
 
@@ -13,14 +9,14 @@ namespace dbRad.Classes
 {
     class WindowDataOps
     {
-        public static string SubstituteWindowParameters( String targetTxt, Dictionary<string, string> columnValues)
+        public static string SubstituteWindowParameters(String targetTxt, Dictionary<string, string> columnValues)
         //Repalces parameter values with control values from editStkPnl
         {
             string x = columnValues.Count.ToString();
             foreach (string key in columnValues.Keys)
             {
-                string s = "~" + key + "~";
-                s = s.ToLower();
+                string s = ("~" + key + "~").ToLower();
+               
                 string r;
                 string columnValue = columnValues[key];
 
@@ -291,7 +287,7 @@ namespace dbRad.Classes
                 controlOrderBy = "\nORDER BY " + controlOrderBy;
 
             controlRowSource += controlOrderBy;
-            controlRowSource = WindowDataOps.SubstituteWindowParameters( controlRowSource, controlValues);
+            controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
 
             getComboRows.CommandText = controlRowSource;
             getComboRows.CommandType = CommandType.Text;

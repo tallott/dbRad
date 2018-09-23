@@ -2,7 +2,6 @@
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
-using System.Data.SqlClient;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -409,7 +408,7 @@ namespace dbRad
                     NpgsqlDataReader getColListReader = getColList.ExecuteReader();
                     while (getColListReader.Read())
                     {
-                        controlName = getColListReader["ColumnName"].ToString();
+                        controlName = getColListReader["ColumnName"].ToString().ToLower();
                         controlLabel = getColListReader["ColumnLabel"].ToString();
                         controlRowSource = getColListReader["RowSource"].ToString();
                         controlFilter = getColListReader["Filter"].ToString();
@@ -434,8 +433,8 @@ namespace dbRad
                                 TextBox rowKey = new TextBox();
                                 rowKey.Name = controlName;
                                 rowKey.Style = (Style)FindResource("winTextBoxStyle");
+                                rowKey.Tag = controlType;
                                 rowKey.IsEnabled = Convert.ToBoolean(controlEnabled);
-                                //rowKey.SetBinding(TextBox.TextProperty, winBinding);
                                 editStkPnl.Children.Add(rowKey);
                                 editStkPnl.RegisterName(rowKey.Name, rowKey);
                                 rowKey.TextChanged += new TextChangedEventHandler((s, e) =>
@@ -448,6 +447,7 @@ namespace dbRad
                                 TextBox tb = new TextBox();
                                 tb.Name = controlName;
                                 tb.Style = (Style)FindResource("winTextBoxStyle");
+                                tb.Tag = controlType;
                                 tb.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 editStkPnl.Children.Add(tb);
                                 editStkPnl.RegisterName(tb.Name, tb);
@@ -464,6 +464,7 @@ namespace dbRad
                                 TextBox tbk = new TextBox();
                                 tbk.Name = controlName;
                                 tbk.Style = (Style)FindResource("winTextBlockStyle");
+                                tbk.Tag = controlType;
                                 tbk.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 editStkPnl.Children.Add(tbk);
                                 editStkPnl.RegisterName(tbk.Name, tbk);
@@ -477,6 +478,7 @@ namespace dbRad
                                 TextBox nb = new TextBox();
                                 nb.Name = controlName;
                                 nb.Style = (Style)FindResource("winNumBoxStyle");
+                                nb.Tag = controlType;
                                 nb.PreviewTextInput += ApplicationUtils.numberValidationTextBox;
                                 nb.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 editStkPnl.Children.Add(nb);
@@ -490,7 +492,7 @@ namespace dbRad
                             case "CHK":
                                 CheckBox chk = new CheckBox();
                                 chk.Name = controlName;
-                                //chk.Style = (Style)FindResource("winCheckBoxStyle");
+                                chk.Tag = controlType;
                                 chk.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 editStkPnl.Children.Add(chk);
                                 editStkPnl.RegisterName(chk.Name, chk);
@@ -512,6 +514,7 @@ namespace dbRad
                                 DatePicker dtp = new DatePicker();
                                 dtp.Name = controlName;
                                 dtp.Style = (Style)FindResource("winDatePickerStyle");
+                                dtp.Tag = controlType;
                                 dtp.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 editStkPnl.Children.Add(dtp);
                                 editStkPnl.RegisterName(dtp.Name, dtp);
@@ -522,9 +525,9 @@ namespace dbRad
                                 ComboBox cb = new ComboBox();
                                 NpgsqlCommand getComboRows = new NpgsqlCommand();
                                 Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-
                                 cb.Name = controlName;
                                 cb.Style = (Style)FindResource("winComboBoxStyle");
+                                cb.Tag = controlType;
                                 cb.IsEnabled = Convert.ToBoolean(controlEnabled);
                                 cb.SelectedValuePath = "valueMember";
                                 cb.DisplayMemberPath = "displayMember";
