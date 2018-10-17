@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -40,7 +42,7 @@ namespace dbRad.Classes
 
             NpgsqlDataReader getTabReader = getTab.ExecuteReader();
             getTabReader.Read();
-            
+
             metaList.ApplicationName = getTabReader["ApplicationName"].ToString();
             metaList.TableKey = getTabReader["TableKey"].ToString();
             metaList.TableName = getTabReader["TableName"].ToString();
@@ -60,7 +62,7 @@ namespace dbRad.Classes
             try
             {
                 DataRowView drv = (DataRowView)winDg.SelectedValue;
-                selectedRowIdVal = Convert.ToInt32( drv.Row.ItemArray[0]);
+                selectedRowIdVal = Convert.ToInt32(drv.Row.ItemArray[0]);
                 return selectedRowIdVal;
             }
             catch
@@ -77,7 +79,7 @@ namespace dbRad.Classes
             w.Close();
         }
 
-         public static void winSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear)
+        public static void winSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear)
         //Sets the various mode for the winow
         {
             winNew.Resources.Remove("winMode");
@@ -110,7 +112,7 @@ namespace dbRad.Classes
             }
 
         }
-        
+
         public static void ResetWinMain()
         {
 
@@ -186,6 +188,45 @@ namespace dbRad.Classes
             }
         }
 
+        public static void winSetControlDefaultValues(StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        //Clears the list of window values used for filters
+        {
+            foreach (KeyValuePair<string, string> item in controlValues)
+            {
+                if (item.Value != "")
+                {
+                    //Determine the Type of control
+                    object obj = editStkPnl.FindName(item.Key);
+
+                    string ctlType = obj.GetType().Name;
+                    //Use Type to work out how to process value;
+
+                    switch (ctlType)
+                    {
+                        case "TextBox":
+                            TextBox tb = (TextBox)editStkPnl.FindName(item.Key);
+                            tb.Text = item.Value;
+                            break;
+
+                        case "ComboBox":
+                            ComboBox cb = (ComboBox)editStkPnl.FindName(item.Key);
+                            cb.Text = item.Value;
+                            break;
+
+                        case "DatePicker":
+                            DatePicker dtp = (DatePicker)editStkPnl.FindName(item.Key);
+                            dtp.SelectedDate = Convert.ToDateTime(item.Value);
+                            break;
+
+                        case "CheckBox":
+                            CheckBox chk = (CheckBox)editStkPnl.FindName(item.Key);
+                            chk.IsChecked = Convert.ToBoolean(item.Value);
+                            break;
+                    }
+                };
+            }
+        }
+
         public static void winResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch)
         {
             tbSelectorText.Text = "";
@@ -203,8 +244,8 @@ namespace dbRad.Classes
                 {
                     DataGridRow row = (DataGridRow)winDg.ItemContainerGenerator.ContainerFromIndex(i);
                     TextBlock cellContent = winDg.Columns[0].GetCellContent(row) as TextBlock;
-                    
-                   
+
+
                     if (cellContent != null && cellContent.Text.Equals(id.ToString()))
                     {
                         object item = winDg.Items[i];

@@ -106,7 +106,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static void dbCreateRecord(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static Boolean dbCreateRecord(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Creates a new record in the db
         {
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
@@ -127,7 +127,7 @@ namespace dbRad.Classes
                 {
                     string ctlType = element.GetType().Name;
 
-                    if (element.Name != tableKey & ctlType != "Lable")
+                    if (element.Name != tableKey & ctlType != "Lable" & element.IsEnabled == true)
                     {
                         switch (ctlType)
                         {
@@ -166,13 +166,12 @@ namespace dbRad.Classes
                                 {
                                     columnUpdates.Add("NULL");
                                 }
-
                                 break;
 
                             case "CheckBox":
                                 CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
                                 columns.Add(element.Name);
-                                columnUpdates.Add(((bool)chk.IsChecked ? 1 : 0).ToString());
+                                columnUpdates.Add("CAST(" + ((bool)chk.IsChecked ? 1 : 0).ToString() + " AS boolean)");
                                 break;
 
                         };
@@ -192,18 +191,20 @@ namespace dbRad.Classes
                 dbCreateRecordSql.ExecuteNonQuery();
                 applicationDb.Close();
 
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
+                //dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                return true;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Insert Record:" + ex.Message, sql);
                 applicationDb.Close();
+                return false;
             }
         }
 
-        public static void dbUpdateRecord(Window winNew, Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static Boolean dbUpdateRecord( Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl)
         //updates the database with values in the data edit fields
+
         {
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
             string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
@@ -293,7 +294,7 @@ namespace dbRad.Classes
                                 CheckBox chk = (CheckBox)editStkPnl.FindName(col.ColumnName);
                                 if (Convert.ToBoolean(chk.IsChecked) != Convert.ToBoolean(row[col]))
                                 {
-                                    sql = sql + col.ColumnName + " = '" + Convert.ToBoolean(chk.IsChecked) + "', ";
+                                    sql = sql + col.ColumnName + " = " + Convert.ToBoolean(chk.IsChecked) + ", ";
                                     isDirty = true;
                                 }
                                     ;
@@ -315,32 +316,25 @@ namespace dbRad.Classes
                         applicationDb.Open();
                         listItemSaveSql.ExecuteNonQuery();
                         applicationDb.Close();
-
-                        dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
-                        TextBox tabIdCol = (TextBox)editStkPnl.FindName(tableKey.ToLower());
-                        selectedRowIdVal = Convert.ToInt32(tabIdCol.Text);
-
-                        WindowTasks.winDataGridSelectRow(selectedRowIdVal, winDg);
-
                     };
 
 
                 }
-
+                return true;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Save Record:" + ex.Message, sql);
                 applicationDb.Close();
+                return false;
             };
         }
 
-        public static void dbDeleteRecord(Window winNew, Int32 applicationTableId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbDeleteRecord(Int32 applicationTableId, DataGrid winDg)
+
         //deletes the selected row from the database
+
         {
-
-
             string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
             string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
             string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
@@ -354,9 +348,8 @@ namespace dbRad.Classes
             try
             {
                 Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-                DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
-                //Delete the selected row from db
 
+                //Delete the selected row from db
                 sql = "DELETE FROM " + schemaName + "." + tableName + " WHERE " + tableKey + " = @Id";
 
                 NpgsqlCommand delRowSql = new NpgsqlCommand();
@@ -368,10 +361,6 @@ namespace dbRad.Classes
                 applicationDb.Open();
                 delRowSql.ExecuteNonQuery();
                 applicationDb.Close();
-
-                WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
-
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
 
             }
             catch (Exception ex)

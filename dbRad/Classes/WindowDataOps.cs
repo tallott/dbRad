@@ -16,7 +16,7 @@ namespace dbRad.Classes
             foreach (string key in columnValues.Keys)
             {
                 string s = ("~" + key + "~").ToLower();
-               
+
                 string r;
                 string columnValue = columnValues[key];
 
@@ -139,10 +139,14 @@ namespace dbRad.Classes
             controlValues[dtp.Name] = "'" + dtp.Text + "'";
         }
 
-        public static void winDataGridClicked(Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        public static void winDataGridClicked(Int32 applicationTableId, DataGrid winDg,Int32 selectedRowIdVal, StackPanel editStkPnl, Dictionary<string, string> controlValues)
         //gets the id of the row selected and loads the edit fileds with the database values
         {
-            Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+            if (selectedRowIdVal == 0)
+            {
+                selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+            }
+            
             try
             {
 
@@ -220,11 +224,12 @@ namespace dbRad.Classes
             getTabSql.CommandType = CommandType.Text;
             getTabSql.Connection = controlDbCon;
 
+
             controlDbCon.Open();
 
             //Run the SQL cmd to return the base SQL that fills DataGrid
-            string sqlTxt = Convert.ToString(getTabSql.ExecuteScalar());
 
+            string sqlTxt = Convert.ToString(getTabSql.ExecuteScalar());
             controlDbCon.Close();
             return sqlTxt;
         }
@@ -244,9 +249,7 @@ namespace dbRad.Classes
             string controlOrderBy;
             string controlType;
             string controlEnabled;
-
-            //string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-            //string tabKey = WindowTasks.winMetadataList(applicationTableId)[1];
+            string controlDefaultvalue;
 
             getColList.CommandText =
                   @"SELECT c.ColumnName,
@@ -255,7 +258,8 @@ namespace dbRad.Classes
                            c.Filter,
                            c.OrderBy,
                            ct.WindowControlType,
-                           c.WindowControlEnabled
+                           c.WindowControlEnabled,
+                           c.columndefaultvalue
                     FROM metadata.ApplicationColumn c
                          INNER JOIN metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
                     WHERE c.ApplicationTableId = @applicationTableId
@@ -266,45 +270,60 @@ namespace dbRad.Classes
             getColList.Parameters.AddWithValue("@colname", colname);
             getColList.CommandType = CommandType.Text;
             getColList.Connection = ctrlDbCon;
-
-            ctrlDbCon.Open();
+            try
             {
-                NpgsqlDataReader getColListReader = getColList.ExecuteReader();
-                getColListReader.Read();
-                controlName = getColListReader["ColumnName"].ToString();
-                controlLabel = getColListReader["ColumnLabel"].ToString();
-                controlRowSource = getColListReader["RowSource"].ToString();
-                controlFilter = getColListReader["Filter"].ToString();
-                controlOrderBy = getColListReader["OrderBy"].ToString();
-                controlType = getColListReader["WindowControlType"].ToString();
-                controlEnabled = getColListReader["WindowControlEnabled"].ToString();
+                ctrlDbCon.Open();
+                {
+                    NpgsqlDataReader getColListReader = getColList.ExecuteReader();
+                    getColListReader.Read();
+                    controlName = getColListReader["ColumnName"].ToString();
+                    controlLabel = getColListReader["ColumnLabel"].ToString();
+                    controlRowSource = getColListReader["RowSource"].ToString();
+                    controlFilter = getColListReader["Filter"].ToString();
+                    controlOrderBy = getColListReader["OrderBy"].ToString();
+                    controlType = getColListReader["WindowControlType"].ToString();
+                    controlEnabled = getColListReader["WindowControlEnabled"].ToString();
+                    controlDefaultvalue = getColListReader["columndefaultvalue"].ToString();
+                }
+                ctrlDbCon.Close();
+
+                if (controlOrderBy == string.Empty)
+                    controlOrderBy = "\nORDER BY 1";
+                else
+                    controlOrderBy = "\nORDER BY " + controlOrderBy;
+
+                controlRowSource += controlOrderBy;
+                controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
+
+                getComboRows.CommandText = controlRowSource;
+                getComboRows.CommandType = CommandType.Text;
+                getComboRows.Connection = appDbCon;
             }
-            ctrlDbCon.Close();
-
-            if (controlOrderBy == string.Empty)
-                controlOrderBy = "\nORDER BY 1";
-            else
-                controlOrderBy = "\nORDER BY " + controlOrderBy;
-
-            controlRowSource += controlOrderBy;
-            controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
-
-            getComboRows.CommandText = controlRowSource;
-            getComboRows.CommandType = CommandType.Text;
-            getComboRows.Connection = appDbCon;
-
-            appDbCon.Open();
+            catch (Exception ex)
             {
-                NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
-
-                comboAdapter.Fill(comboDataTable);
-                cb.ItemsSource = comboDataTable.DefaultView;
-                cb.DisplayMemberPath = comboDataTable.Columns["displayMember"].ToString();
-                cb.SelectedValuePath = comboDataTable.Columns["valueMember"].ToString();
-
+                WindowTasks.DisplayError(ex, "ERROR Reading Data:" + ex.Message, getColList.CommandText);
+                ctrlDbCon.Close();
             }
-            appDbCon.Close();
-            return comboDataTable;
+            try
+            {
+                appDbCon.Open();
+                {
+                    NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
+
+                    comboAdapter.Fill(comboDataTable);
+                    cb.ItemsSource = comboDataTable.DefaultView;
+                    cb.DisplayMemberPath = comboDataTable.Columns["displayMember"].ToString();
+                    cb.SelectedValuePath = comboDataTable.Columns["valueMember"].ToString();
+                }
+                appDbCon.Close();
+                return comboDataTable;
+            }
+            catch (Exception ex)
+            {
+                WindowTasks.DisplayError(ex, "ERROR Filling Combo:" + ex.Message, getColList.CommandText);
+                appDbCon.Close();
+                return comboDataTable;
+            }
         }
 
     }

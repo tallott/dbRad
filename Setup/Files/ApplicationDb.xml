@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Connections xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <HostName>wsacdev.talapajar.com</HostName>
+<ApplicationConnections xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <HostName>wsac.talapajar.com</HostName>
   <UserName>cUser</UserName>
-</Connections>
+</ApplicationConnections>
