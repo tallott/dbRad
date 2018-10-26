@@ -53,7 +53,6 @@ namespace dbRad.Classes
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
 
-
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
                         //Set the value of the control col.Name in the window to the value returned by row[col]
@@ -139,7 +138,7 @@ namespace dbRad.Classes
             controlValues[dtp.Name] = "'" + dtp.Text + "'";
         }
 
-        public static void winDataGridClicked(Int32 applicationTableId, DataGrid winDg,Int32 selectedRowIdVal, StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        public static void winDataGridClicked(WindowMetaList windowMetaList, DataGrid winDg,Int32 selectedRowIdVal, StackPanel editStkPnl, Dictionary<string, string> controlValues)
         //gets the id of the row selected and loads the edit fileds with the database values
         {
             if (selectedRowIdVal == 0)
@@ -152,7 +151,7 @@ namespace dbRad.Classes
 
                 if (selectedRowIdVal != 0)
                 {
-                    DataTable winSelectedRowDataTable = dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
+                    DataTable winSelectedRowDataTable = dbGetDataRow(windowMetaList, selectedRowIdVal, editStkPnl);
                     WindowDataOps.winLoadDataRow(editStkPnl, winSelectedRowDataTable, controlValues);
                     winDg.UpdateLayout();
                 }
@@ -163,19 +162,15 @@ namespace dbRad.Classes
             }
         }
 
-        public static DataTable dbGetDataRow(Int32 applicationTableId, Int32 id, StackPanel editStkPnl)
+        public static DataTable dbGetDataRow(WindowMetaList windowMetaList, Int32 id, StackPanel editStkPnl)
         //Loads a single row from the database into a table for the record for the selected ID
         {
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+ 
+            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
 
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 
-            string sql = "SELECT * FROM " + schemaName + "." + tableName + " WHERE " + tableKey + " = @Id";
+            string sql = "SELECT * FROM " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " WHERE " + windowMetaList.TableKey + " = @Id";
 
             DataTable winSelectedRowDataTable = new DataTable();
 
@@ -235,7 +230,7 @@ namespace dbRad.Classes
         }
 
 
-        public static DataTable winPopulateCombo(ComboBox cb, Int32 applicationTableId, string colname, NpgsqlConnection ctrlDbCon, NpgsqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
+        public static DataTable winPopulateCombo(ComboBox cb, WindowMetaList windowMetaList, string colname, NpgsqlConnection ctrlDbCon, NpgsqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
         {
             NpgsqlCommand getColList = new NpgsqlCommand();
             NpgsqlCommand getComboRows = new NpgsqlCommand();
@@ -266,7 +261,7 @@ namespace dbRad.Classes
                     AND c.ColumnName = @colname
                     ORDER BY c.WindowLayoutOrder";
 
-            getColList.Parameters.AddWithValue("@applicationTableId", applicationTableId);
+            getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
             getColList.Parameters.AddWithValue("@colname", colname);
             getColList.CommandType = CommandType.Text;
             getColList.Connection = ctrlDbCon;

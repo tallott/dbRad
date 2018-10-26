@@ -23,6 +23,7 @@ namespace dbRad.Classes
 
             getTab.CommandText =
               @"SELECT a.ApplicationName,
+                       t.ApplicationTableId,
                        t.TableName,
                        t.TableLabel,
                        s.SchemaName,
@@ -44,6 +45,7 @@ namespace dbRad.Classes
             getTabReader.Read();
 
             metaList.ApplicationName = getTabReader["ApplicationName"].ToString();
+            metaList.TableId = Convert.ToInt32(getTabReader["ApplicationTableId"]);
             metaList.TableKey = getTabReader["TableKey"].ToString();
             metaList.TableName = getTabReader["TableName"].ToString();
             metaList.TableLabel = getTabReader["TableLabel"].ToString();

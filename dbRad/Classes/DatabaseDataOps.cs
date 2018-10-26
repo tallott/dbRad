@@ -9,16 +9,16 @@ namespace dbRad.Classes
 {
     class DatabaseDataOps
     {
-        public static void dbGetDataGridRows(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void dbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
             NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(WindowTasks.winMetadataList(applicationTableId).ApplicationName));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(WindowTasks.winMetadataList(windowMetaList.TableId).ApplicationName));
 
             DataTable winDt = new DataTable();
 
             string sqlPart;
-            Int32 sqlParam = applicationTableId;
+            Int32 sqlParam = windowMetaList.TableId;
 
             //Single row to return user defined DML SQL for DataGrid
             sqlPart =
@@ -73,8 +73,6 @@ namespace dbRad.Classes
                         winDg.ItemsSource = winDt.DefaultView;
 
                         //set the page counter
-                        string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-                        string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
                         Int32 rowCount = 0;
 
                         Int32 chrStart = sqlCountText.IndexOf("SELECT") + 6;
@@ -91,8 +89,7 @@ namespace dbRad.Classes
 
 
                         tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
-                        //Define the grid columns
-
+ 
                         controlDb.Close();
                         applicationDb.Close();
                     }
@@ -106,28 +103,23 @@ namespace dbRad.Classes
             }
         }
 
-        public static Boolean dbCreateRecord(Window winNew, Int32 applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static Boolean dbCreateRecord(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Creates a new record in the db
         {
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
+            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
             List<string> columns = new List<string>();
             List<string> columnUpdates = new List<string>();
 
             string sql = string.Empty;
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
             try
             {
                 foreach (FrameworkElement element in editStkPnl.Children)
                 {
                     string ctlType = element.GetType().Name;
 
-                    if (element.Name != tableKey & ctlType != "Lable" & element.IsEnabled == true)
+                    if (element.Name != windowMetaList.TableKey & ctlType != "Lable" & element.IsEnabled == true)
                     {
                         switch (ctlType)
                         {
@@ -136,7 +128,7 @@ namespace dbRad.Classes
                                 columns.Add(element.Name);
                                 if (tb.Tag.ToString() != "NUM")
                                 {
-                                    columnUpdates.Add("'" + tb.Text + "'");
+                                    columnUpdates.Add("'" + tb.Text.Replace("'","''") + "'");
                                 }
                                 else
                                 {
@@ -180,7 +172,7 @@ namespace dbRad.Classes
                 }
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                sql = "INSERT INTO " + schemaName + "." + tableName + " " + csvColumns + csvColumnUpdates;
+                sql = "INSERT INTO " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " " + csvColumns + csvColumnUpdates;
 
                 NpgsqlCommand dbCreateRecordSql = new NpgsqlCommand();
                 dbCreateRecordSql.CommandText = sql;
@@ -191,8 +183,7 @@ namespace dbRad.Classes
                 dbCreateRecordSql.ExecuteNonQuery();
                 applicationDb.Close();
 
-                //dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-                return true;
+               return true;
             }
             catch (Exception ex)
             {
@@ -202,18 +193,14 @@ namespace dbRad.Classes
             }
         }
 
-        public static Boolean dbUpdateRecord( Int32 applicationTableId, DataGrid winDg, StackPanel editStkPnl)
+        public static Boolean dbUpdateRecord(WindowMetaList windowMetaList, DataGrid winDg, StackPanel editStkPnl)
         //updates the database with values in the data edit fields
 
         {
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+ 
+            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
 
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 
             string sql = string.Empty;
 
@@ -221,13 +208,13 @@ namespace dbRad.Classes
             {
                 Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
 
-                DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
+                DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(windowMetaList, selectedRowIdVal, editStkPnl);
 
                 Boolean isDirty = false;
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
-                    sql = "UPDATE " + schemaName + "." + tableName + " SET ";
+                    sql = "UPDATE " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " SET ";
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
 
@@ -246,7 +233,7 @@ namespace dbRad.Classes
                                 {
                                     if (tb.Tag.ToString() != "NUM")
                                     {
-                                        sql = sql + col.ColumnName + " = '" + tb.Text + "', ";
+                                        sql = sql + col.ColumnName + " = '" + tb.Text.Replace("'","''") + "', ";
 
                                     }
                                     else
@@ -264,10 +251,13 @@ namespace dbRad.Classes
                             case "ComboBox":
 
                                 ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
+                                if(cb.SelectedValue != null)
+                                { 
                                 if (cb.SelectedValue.ToString() != row[col].ToString())
                                 {
                                     sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
                                     isDirty = true;
+                                }
                                 }
                                 break;
 
@@ -305,7 +295,7 @@ namespace dbRad.Classes
                     if (isDirty)
                     { //Update the selected record in database
 
-                        sql = sql.Trim(',', ' ') + " WHERE " + tableKey + " = @Id";
+                        sql = sql.Trim(',', ' ') + " WHERE " + windowMetaList.TableKey + " = @Id";
 
                         NpgsqlCommand listItemSaveSql = new NpgsqlCommand();
                         listItemSaveSql.CommandText = sql;
@@ -330,19 +320,15 @@ namespace dbRad.Classes
             };
         }
 
-        public static void dbDeleteRecord(Int32 applicationTableId, DataGrid winDg)
+        public static void dbDeleteRecord(WindowMetaList windowMetaList, DataGrid winDg)
 
         //deletes the selected row from the database
 
         {
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
 
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(applicationName));
+            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
+
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 
             string sql = string.Empty;
             try
@@ -350,7 +336,7 @@ namespace dbRad.Classes
                 Int32 selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
 
                 //Delete the selected row from db
-                sql = "DELETE FROM " + schemaName + "." + tableName + " WHERE " + tableKey + " = @Id";
+                sql = "DELETE FROM " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " WHERE " + windowMetaList.TableKey + " = @Id";
 
                 NpgsqlCommand delRowSql = new NpgsqlCommand();
                 delRowSql.CommandText = sql;

@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace dbRad.Classes
 {
     public partial class WindowMetaList
@@ -9,7 +11,7 @@ namespace dbRad.Classes
         private static string _SchemaName = string.Empty;
         private static string _SchemaLabel = string.Empty;
         private static string _TableKey = string.Empty;
-        private static string _ApplicationTableId = string.Empty;
+        private static Int32 _TableId = 0;
 
         public string ApplicationName
         {
@@ -83,15 +85,15 @@ namespace dbRad.Classes
             }
         }
 
-        public string ApplicationTableId
+        public Int32 TableId
         {
             get
             {
-                return _ApplicationTableId;
+                return _TableId;
             }
             set
             {
-                _ApplicationTableId = value;
+                _TableId = value;
             }
         }
     }
