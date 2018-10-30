@@ -228,8 +228,10 @@ namespace dbRad
             Int32 selectedDataGridRowIdVal = 0;
             Int32 selectedFilter = 0;
 
-            WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
+
             string displayMember = String.Empty;
+
+            WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
 
             NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
             NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
@@ -239,10 +241,10 @@ namespace dbRad
             winNew.Style = (Style)FindResource("winStyle");
             winNew.Title = "Manage " + windowMetaList.TableLabel + " (" + windowMetaList.TableName + ")";
             winNew.Name = windowMetaList.TableName;
-
-            //winNew.Resources.Add("tabId", applicationTableId);
-            winNew.Resources.Add("winMode", "SELECT");
-            winNew.Resources.Add("winFilter", "1 = 1");
+            winNew.Activated += new EventHandler((s, e) =>
+           {
+               windowMetaList = WindowTasks.winMetadataList(applicationTableId);
+           });
 
             //Main layout Grid - 2 cols by 3 rows
             Grid mainGrid = new Grid();
@@ -663,7 +665,7 @@ namespace dbRad
             btnDelete.Click += new RoutedEventHandler((s, e) =>
             {
                 DatabaseDataOps.dbDeleteRecord(windowMetaList, winDg);
-             
+
                 DatabaseDataOps.dbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
 
                 WindowTasks.winSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear);

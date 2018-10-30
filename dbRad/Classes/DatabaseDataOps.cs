@@ -50,13 +50,22 @@ namespace dbRad.Classes
 
             winNew.Resources.Remove("winFilter");
             winNew.Resources.Add("winFilter", fltTxt);
+
+            //Single row to return user defined sort cols for DataGrid
+            sqlParam = windowMetaList.TableId;
+            sqlPart =
+              @"SELECT orderby
+                FROM metadata.ApplicationTable
+                WHERE ApplicationTableId = @sqlParam";
+
+            string sqlOrderBy = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
+
             //Build where clause with replacement values for |COLUMN_NAME| parameters  
             fltTxt = WindowDataOps.SubstituteWindowParameters(fltTxt, controlValues);
             sqlTxt = sqlTxt + " WHERE " + fltTxt;
             string sqlCountText = sqlTxt;
-            sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
-
-
+            sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
+        
             try
             {
                 {
