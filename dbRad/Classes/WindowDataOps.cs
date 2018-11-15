@@ -210,7 +210,7 @@ namespace dbRad.Classes
         //Single row to return user defined DML SQL for DataGrid
         {
 
-            NpgsqlConnection controlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection controlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
 
             NpgsqlCommand getTabSql = new NpgsqlCommand();
 
@@ -246,20 +246,7 @@ namespace dbRad.Classes
             string controlEnabled;
             string controlDefaultvalue;
 
-            getColList.CommandText =
-                  @"SELECT c.ColumnName,
-                           COALESCE(c.ColumnLable, c.ColumnName) AS ColumnLabel,
-                           c.RowSource,
-                           c.Filter,
-                           c.OrderBy,
-                           ct.WindowControlType,
-                           c.WindowControlEnabled,
-                           c.columndefaultvalue
-                    FROM metadata.ApplicationColumn c
-                         INNER JOIN metadata.WindowControlType ct ON c.WindowControlTypeId = ct.WindowControlTypeId
-                    WHERE c.ApplicationTableId = @applicationTableId
-                    AND c.ColumnName = @colname
-                    ORDER BY c.WindowLayoutOrder";
+            getColList.CommandText = ControlDatabaseSql.ColumnMetadataForColumn();
 
             getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
             getColList.Parameters.AddWithValue("@colname", colname);
@@ -271,14 +258,14 @@ namespace dbRad.Classes
                 {
                     NpgsqlDataReader getColListReader = getColList.ExecuteReader();
                     getColListReader.Read();
-                    controlName = getColListReader["ColumnName"].ToString();
-                    controlLabel = getColListReader["ColumnLabel"].ToString();
-                    controlRowSource = getColListReader["RowSource"].ToString();
-                    controlFilter = getColListReader["Filter"].ToString();
-                    controlOrderBy = getColListReader["OrderBy"].ToString();
-                    controlType = getColListReader["WindowControlType"].ToString();
-                    controlEnabled = getColListReader["WindowControlEnabled"].ToString();
-                    controlDefaultvalue = getColListReader["columndefaultvalue"].ToString();
+                    controlName = getColListReader["column_name"].ToString();
+                    controlLabel = getColListReader["column_label"].ToString();
+                    controlRowSource = getColListReader["row_source"].ToString();
+                    controlFilter = getColListReader["filter"].ToString();
+                    controlOrderBy = getColListReader["order_by"].ToString();
+                    controlType = getColListReader["window_control_type"].ToString();
+                    controlEnabled = getColListReader["window_control_enabled"].ToString();
+                    controlDefaultvalue = getColListReader["column_default_value"].ToString();
                 }
                 ctrlDbCon.Close();
 
@@ -307,8 +294,8 @@ namespace dbRad.Classes
 
                     comboAdapter.Fill(comboDataTable);
                     cb.ItemsSource = comboDataTable.DefaultView;
-                    cb.DisplayMemberPath = comboDataTable.Columns["displayMember"].ToString();
-                    cb.SelectedValuePath = comboDataTable.Columns["valueMember"].ToString();
+                    cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
+                    cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
                 }
                 appDbCon.Close();
                 return comboDataTable;

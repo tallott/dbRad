@@ -84,6 +84,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\ApplicationUtils.cs" />
+    <Compile Include="Classes\ControlDatabaseSql.cs" />
     <Compile Include="Classes\DatabaseDataOps.cs" />
     <Compile Include="Classes\DynamicFormData.cs" />
     <Compile Include="Classes\WindowMetaList.cs" />

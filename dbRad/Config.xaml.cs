@@ -84,7 +84,7 @@ namespace dbRad
             buttonStackPanel.Style = FindStyle("winButtonStack");
 
             Style textBoxStyle = FindStyle("winTextBoxStyle");
-            Style lableStyle = FindStyle("winLabelStyle");
+            Style labelStyle = FindStyle("winLabelStyle");
 
             Button buttonClose = new Button();
             buttonClose.Name = "btnClose";
@@ -134,23 +134,23 @@ namespace dbRad
             if (File.Exists(appDbFilePath))
             {
                 appDb = ApplicationFiletasks.ReadFromXmlFile<ApplicationConnections>(appDbFilePath);
-                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
+                BuildFormClass(controlDbStackPanel, labelStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
             else
             {
                 ApplicationFiletasks.WriteToXmlFile<ApplicationConnections>(appDbFilePath, appDb);
-                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
+                BuildFormClass(controlDbStackPanel, labelStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
 
             if (File.Exists(userFilePath))
             {
                 applicationUser = ApplicationFiletasks.ReadFromXmlFile<ApplicationUser>(userFilePath);
-                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
+                BuildFormClass(settingsStackPanel, labelStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
             else
             {
                 ApplicationFiletasks.WriteToXmlFile<ApplicationUser>(userFilePath, applicationUser);
-                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
+                BuildFormClass(settingsStackPanel, labelStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
 
             Grid.SetRow(buttonStackPanel, 1);
@@ -160,7 +160,7 @@ namespace dbRad
             window.SizeToContent = SizeToContent.WidthAndHeight;
 
         }
-        private static StackPanel BuildFormClass<T>(StackPanel stackPanelIn, Style lableStyle, Style textBoxStyle, T Tclass, out StackPanel stackPanelOut)
+        private static StackPanel BuildFormClass<T>(StackPanel stackPanelIn, Style labelStyle, Style textBoxStyle, T Tclass, out StackPanel stackPanelOut)
         {
             Type tClass = Tclass.GetType();
             PropertyInfo[] tClassProperties = tClass.GetProperties();
@@ -171,7 +171,7 @@ namespace dbRad
                 string propertyValue = tClassProperty.GetValue(Tclass, null).ToString();
 
                 Label label = new Label();
-                label.Style = lableStyle;
+                label.Style = labelStyle;
                 label.Content = propertyName;
 
                 TextBox textBox = new TextBox();

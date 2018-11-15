@@ -11,8 +11,6 @@ namespace dbRad.Classes
 
         public override string ToString()
         {
-            //return "Data Source = " + HostName + "; Initial Catalog = $DatabaseName$; Persist Security Info = True; User ID = " + UserName + ";Password=" + UserPassword;
-            //return "Data Source=" + HostName + ";Persist Security Info=True;User ID=" + UserName + ";Password=" + UserPassword;
             return "Host = " + HostName +"; Database =  $DatabaseName$; Username = " + UserName + "; Password = " + UserPassword;
         }
     }

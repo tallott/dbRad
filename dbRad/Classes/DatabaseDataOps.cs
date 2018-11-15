@@ -12,7 +12,7 @@ namespace dbRad.Classes
         public static void dbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
-            NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
             NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(WindowTasks.winMetadataList(windowMetaList.TableId).ApplicationName));
 
             DataTable winDt = new DataTable();
@@ -21,31 +21,21 @@ namespace dbRad.Classes
             Int32 sqlParam = windowMetaList.TableId;
 
             //Single row to return user defined DML SQL for DataGrid
-            sqlPart =
-              @"SELECT Dml
-                FROM metadata.ApplicationTable
-                WHERE ApplicationTableId = @sqlParam";
+            sqlPart = ControlDatabaseSql.TableDml();
 
             string sqlTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
 
             //Append filter where clause to the end of DML
             if (selectedFilter == 0) //Default filter selected
             {
-                sqlPart =
-                  @"SELECT FilterDefinition
-                    FROM metadata.ApplicationFilter
-                    WHERE ApplicationTableId = @sqlparam
-                            AND SortOrder = 1";
+                sqlPart = ControlDatabaseSql.TableFilterDefault();
             }
             else //Custom filter selected
             {
                 sqlParam = selectedFilter;
-                sqlPart =
-                  @"SELECT FilterDefinition
-                    FROM metadata.ApplicationFilter
-                    WHERE ApplicationFilterId = @sqlparam";
+                sqlPart = ControlDatabaseSql.TableFilterSelected();
             }
-
+            
             string fltTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
 
             winNew.Resources.Remove("winFilter");
@@ -53,17 +43,17 @@ namespace dbRad.Classes
 
             //Single row to return user defined sort cols for DataGrid
             sqlParam = windowMetaList.TableId;
-            sqlPart =
-              @"SELECT orderby
-                FROM metadata.ApplicationTable
-                WHERE ApplicationTableId = @sqlParam";
-
+            sqlPart = ControlDatabaseSql.TableOrderBy();
+            
+            //Get order by
             string sqlOrderBy = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
+            
+            //get where clause
+            fltTxt = WindowDataOps.SubstituteWindowParameters(fltTxt, controlValues);
 
             //Build where clause with replacement values for |COLUMN_NAME| parameters  
-            fltTxt = WindowDataOps.SubstituteWindowParameters(fltTxt, controlValues);
-            sqlTxt = sqlTxt + " WHERE " + fltTxt;
             string sqlCountText = sqlTxt;
+
             sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
         
             try
@@ -115,8 +105,6 @@ namespace dbRad.Classes
         public static Boolean dbCreateRecord(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Creates a new record in the db
         {
-
-            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
             List<string> columns = new List<string>();
             List<string> columnUpdates = new List<string>();
 
@@ -128,7 +116,7 @@ namespace dbRad.Classes
                 {
                     string ctlType = element.GetType().Name;
 
-                    if (element.Name != windowMetaList.TableKey & ctlType != "Lable" & element.IsEnabled == true)
+                    if (element.Name != windowMetaList.TableKey & ctlType != "Label" & element.IsEnabled == true)
                     {
                         switch (ctlType)
                         {
@@ -207,8 +195,6 @@ namespace dbRad.Classes
 
         {
  
-            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
-
             NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 
             string sql = string.Empty;
@@ -334,8 +320,6 @@ namespace dbRad.Classes
         //deletes the selected row from the database
 
         {
-
-            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
 
             NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 

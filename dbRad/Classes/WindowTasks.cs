@@ -14,27 +14,14 @@ namespace dbRad.Classes
         public static WindowMetaList winMetadataList(Int32 tabId)
         //Returns the list of metadata values for a window
         {
-            NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("Control"));
+            NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
 
             WindowMetaList metaList = new WindowMetaList();
 
             //get the table string values
             NpgsqlCommand getTab = new NpgsqlCommand();
 
-            getTab.CommandText =
-              @"SELECT a.ApplicationName,
-                       t.ApplicationTableId,
-                       t.TableName,
-                       t.TableLabel,
-                       s.SchemaName,
-                       s.SchemaLabel,
-                       t.TableKey,
-                       t.ApplicationTableId
-                FROM metadata.Application a
-                     INNER JOIN metadata.ApplicationSchema apps ON a.ApplicationId = apps.ApplicationId
-                     INNER JOIN metadata.ApplicationTable t ON t.ApplicationSchemaId = apps.ApplicationSchemaId
-                     INNER JOIN metadata.Schema s ON apps.SchemaId = s.SchemaId
-                WHERE ApplicationTableId = @tabId";
+            getTab.CommandText = ControlDatabaseSql.TableMetadata();
 
             getTab.CommandType = CommandType.Text;
             getTab.Parameters.AddWithValue("@tabId", tabId);
@@ -44,13 +31,13 @@ namespace dbRad.Classes
             NpgsqlDataReader getTabReader = getTab.ExecuteReader();
             getTabReader.Read();
 
-            metaList.ApplicationName = getTabReader["ApplicationName"].ToString();
-            metaList.TableId = Convert.ToInt32(getTabReader["ApplicationTableId"]);
-            metaList.TableKey = getTabReader["TableKey"].ToString();
-            metaList.TableName = getTabReader["TableName"].ToString();
-            metaList.TableLabel = getTabReader["TableLabel"].ToString();
-            metaList.SchemaName = getTabReader["SchemaName"].ToString();
-            metaList.SchemaLabel = getTabReader["SchemaLabel"].ToString();
+            metaList.ApplicationName = getTabReader["application_name"].ToString();
+            metaList.TableId = Convert.ToInt32(getTabReader["application_table_id"]);
+            metaList.TableKey = getTabReader["table_key"].ToString();
+            metaList.TableName = getTabReader["table_name"].ToString();
+            metaList.TableLabel = getTabReader["table_label"].ToString();
+            metaList.SchemaName = getTabReader["schema_name"].ToString();
+            metaList.SchemaLabel = getTabReader["schema_label"].ToString();
 
             ctrlDbCon.Close();
             return metaList;
