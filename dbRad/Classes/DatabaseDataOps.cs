@@ -52,6 +52,8 @@ namespace dbRad.Classes
             fltTxt = WindowDataOps.SubstituteWindowParameters(fltTxt, controlValues);
 
             //Build where clause with replacement values for |COLUMN_NAME| parameters  
+            sqlTxt = sqlTxt + " WHERE " + fltTxt;
+
             string sqlCountText = sqlTxt;
 
             sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
