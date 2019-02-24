@@ -14,10 +14,12 @@ namespace dbRad.Classes
         public static WindowMetaList winMetadataList(Int32 tabId)
         //Returns the list of metadata values for a window
         {
-            NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
-
+            NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
+            
             WindowMetaList metaList = new WindowMetaList();
-
+            //Set the control connections
+            metaList.controlDb = controlDb;
+            
             //get the table string values
             NpgsqlCommand getTab = new NpgsqlCommand();
 
@@ -25,8 +27,8 @@ namespace dbRad.Classes
 
             getTab.CommandType = CommandType.Text;
             getTab.Parameters.AddWithValue("@tabId", tabId);
-            getTab.Connection = ctrlDbCon;
-            ctrlDbCon.Open();
+            getTab.Connection = controlDb;
+            controlDb.Open();
 
             NpgsqlDataReader getTabReader = getTab.ExecuteReader();
             getTabReader.Read();
@@ -39,7 +41,11 @@ namespace dbRad.Classes
             metaList.SchemaName = getTabReader["schema_name"].ToString();
             metaList.SchemaLabel = getTabReader["schema_label"].ToString();
 
-            ctrlDbCon.Close();
+            //set the application connection
+            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(metaList.ApplicationName));
+            metaList.applicationDb = applicationDb;
+
+            controlDb.Close();
             return metaList;
 
         }

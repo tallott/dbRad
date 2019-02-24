@@ -12,10 +12,7 @@ namespace dbRad.Classes
         public static void dbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
-            NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(WindowTasks.winMetadataList(windowMetaList.TableId).ApplicationName));
-
-            DataTable winDt = new DataTable();
+                       DataTable winDt = new DataTable();
 
             string sqlPart;
             Int32 sqlParam = windowMetaList.TableId;
@@ -23,7 +20,7 @@ namespace dbRad.Classes
             //Single row to return user defined DML SQL for DataGrid
             sqlPart = ControlDatabaseSql.TableDml();
 
-            string sqlTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
+            string sqlTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList);
 
             //Append filter where clause to the end of DML
             if (selectedFilter == 0) //Default filter selected
@@ -35,8 +32,8 @@ namespace dbRad.Classes
                 sqlParam = selectedFilter;
                 sqlPart = ControlDatabaseSql.TableFilterSelected();
             }
-            
-            string fltTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
+
+            string fltTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList);
 
             winNew.Resources.Remove("winFilter");
             winNew.Resources.Add("winFilter", fltTxt);
@@ -44,10 +41,10 @@ namespace dbRad.Classes
             //Single row to return user defined sort cols for DataGrid
             sqlParam = windowMetaList.TableId;
             sqlPart = ControlDatabaseSql.TableOrderBy();
-            
+
             //Get order by
-            string sqlOrderBy = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
-            
+            string sqlOrderBy = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList);
+
             //get where clause
             fltTxt = WindowDataOps.SubstituteWindowParameters(fltTxt, controlValues);
 
@@ -57,15 +54,15 @@ namespace dbRad.Classes
             string sqlCountText = sqlTxt;
 
             sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
-        
+
             try
             {
                 {
-                    controlDb.Open();
-                    applicationDb.Open();
+                    windowMetaList.controlDb.Open();
+                    windowMetaList.applicationDb.Open();
                     {
                         //Run the SQL cmd to return SQL that fills DataGrid
-                        NpgsqlCommand execTabSql = applicationDb.CreateCommand();
+                        NpgsqlCommand execTabSql = windowMetaList.applicationDb.CreateCommand();
                         execTabSql.CommandText = sqlTxt;
 
                         //Create an adapter and fill the grid using sql and adapater
@@ -80,7 +77,7 @@ namespace dbRad.Classes
                         Int32 chrEnd = sqlCountText.IndexOf("FROM");
 
                         sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
-                        NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, applicationDb);
+                        NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, windowMetaList.applicationDb);
                         rowCount = Convert.ToInt32(countRows.ExecuteScalar());
                         Int32 pageSize = Convert.ToInt32(tbFetch.Text);
                         Int32 offSet = Convert.ToInt32(tbOffset.Text);
@@ -90,17 +87,17 @@ namespace dbRad.Classes
 
 
                         tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
- 
-                        controlDb.Close();
-                        applicationDb.Close();
+
+                        windowMetaList.controlDb.Close();
+                        windowMetaList.applicationDb.Close();
                     }
                 }
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "ERROR in Filter SQL:" + ex.Message, sqlTxt);
-                controlDb.Close();
-                applicationDb.Close();
+                windowMetaList.controlDb.Close();
+                windowMetaList.applicationDb.Close();
             }
         }
 
@@ -111,7 +108,7 @@ namespace dbRad.Classes
             List<string> columnUpdates = new List<string>();
 
             string sql = string.Empty;
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
+
             try
             {
                 foreach (FrameworkElement element in editStkPnl.Children)
@@ -127,7 +124,7 @@ namespace dbRad.Classes
                                 columns.Add(element.Name);
                                 if (tb.Tag.ToString() != "NUM")
                                 {
-                                    columnUpdates.Add("'" + tb.Text.Replace("'","''") + "'");
+                                    columnUpdates.Add("'" + tb.Text.Replace("'", "''") + "'");
                                 }
                                 else
                                 {
@@ -176,18 +173,18 @@ namespace dbRad.Classes
                 NpgsqlCommand dbCreateRecordSql = new NpgsqlCommand();
                 dbCreateRecordSql.CommandText = sql;
                 dbCreateRecordSql.CommandType = CommandType.Text;
-                dbCreateRecordSql.Connection = applicationDb;
+                dbCreateRecordSql.Connection = windowMetaList.applicationDb;
 
-                applicationDb.Open();
+                windowMetaList.applicationDb.Open();
                 dbCreateRecordSql.ExecuteNonQuery();
-                applicationDb.Close();
+                windowMetaList.applicationDb.Close();
 
-               return true;
+                return true;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Insert Record:" + ex.Message, sql);
-                applicationDb.Close();
+                windowMetaList.applicationDb.Close();
                 return false;
             }
         }
@@ -196,8 +193,6 @@ namespace dbRad.Classes
         //updates the database with values in the data edit fields
 
         {
- 
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 
             string sql = string.Empty;
 
@@ -230,7 +225,7 @@ namespace dbRad.Classes
                                 {
                                     if (tb.Tag.ToString() != "NUM")
                                     {
-                                        sql = sql + col.ColumnName + " = '" + tb.Text.Replace("'","''") + "', ";
+                                        sql = sql + col.ColumnName + " = '" + tb.Text.Replace("'", "''") + "', ";
 
                                     }
                                     else
@@ -248,13 +243,13 @@ namespace dbRad.Classes
                             case "ComboBox":
 
                                 ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
-                                if(cb.SelectedValue != null)
-                                { 
-                                if (cb.SelectedValue.ToString() != row[col].ToString())
+                                if (cb.SelectedValue != null)
                                 {
-                                    sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
-                                    isDirty = true;
-                                }
+                                    if (cb.SelectedValue.ToString() != row[col].ToString())
+                                    {
+                                        sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
+                                        isDirty = true;
+                                    }
                                 }
                                 break;
 
@@ -298,11 +293,11 @@ namespace dbRad.Classes
                         listItemSaveSql.CommandText = sql;
                         listItemSaveSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
                         listItemSaveSql.CommandType = CommandType.Text;
-                        listItemSaveSql.Connection = applicationDb;
+                        listItemSaveSql.Connection = windowMetaList.applicationDb;
 
-                        applicationDb.Open();
+                        windowMetaList.applicationDb.Open();
                         listItemSaveSql.ExecuteNonQuery();
-                        applicationDb.Close();
+                        windowMetaList.applicationDb.Close();
                     };
 
 
@@ -312,7 +307,7 @@ namespace dbRad.Classes
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Save Record:" + ex.Message, sql);
-                applicationDb.Close();
+                windowMetaList.applicationDb.Close();
                 return false;
             };
         }
@@ -322,8 +317,6 @@ namespace dbRad.Classes
         //deletes the selected row from the database
 
         {
-
-            NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
 
             string sql = string.Empty;
             try
@@ -337,17 +330,17 @@ namespace dbRad.Classes
                 delRowSql.CommandText = sql;
                 delRowSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
                 delRowSql.CommandType = CommandType.Text;
-                delRowSql.Connection = applicationDb;
+                delRowSql.Connection = windowMetaList.applicationDb;
 
-                applicationDb.Open();
+                windowMetaList.applicationDb.Open();
                 delRowSql.ExecuteNonQuery();
-                applicationDb.Close();
+                windowMetaList.applicationDb.Close();
 
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Delete Record:" + ex.Message, sql);
-                applicationDb.Close();
+                windowMetaList.applicationDb.Close();
             };
         }
 

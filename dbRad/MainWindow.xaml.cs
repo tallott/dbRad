@@ -208,8 +208,8 @@ namespace dbRad
 
             WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
 
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
-            NpgsqlConnection ctrlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
+            //NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
+            //NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
 
             //Create a new window - this is a window based on an underlying database table
             Window winNew = new Window();
@@ -337,9 +337,9 @@ namespace dbRad
    
             getFltRows.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
             getFltRows.CommandType = CommandType.Text;
-            getFltRows.Connection = ctrlDbCon;
+            getFltRows.Connection = windowMetaList.controlDb;
 
-            ctrlDbCon.Open();
+            windowMetaList.controlDb.Open();
             {
                 NpgsqlDataAdapter fltAdapter = new NpgsqlDataAdapter(getFltRows);
                 DataTable fltDataTable = new DataTable();
@@ -348,7 +348,7 @@ namespace dbRad
                 winFlt.DisplayMemberPath = fltDataTable.Columns["display_member"].ToString();
                 winFlt.SelectedValuePath = fltDataTable.Columns["value_member"].ToString();
             }
-            ctrlDbCon.Close();
+            windowMetaList.controlDb.Close();
 
             //Set the Filter default value
             winFlt.SelectedIndex = 0;
@@ -359,10 +359,10 @@ namespace dbRad
                  
             getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
             getColList.CommandType = CommandType.Text;
-            getColList.Connection = ctrlDbCon;
+            getColList.Connection = windowMetaList.controlDb;
 
 
-            ctrlDbCon.Open();
+            windowMetaList.controlDb.Open();
             try
             {
                 {
@@ -515,7 +515,7 @@ namespace dbRad
                                 {
                                     displayMember = cb.Text;
                                     DataTable comboDataTable = new DataTable();
-                                    comboDataTable = WindowDataOps.winPopulateCombo(cb, windowMetaList, cb.Name, ctrlDbCon, appDbCon, editStkPnl, controlValues, winDg);
+                                    comboDataTable = WindowDataOps.winPopulateCombo(cb, windowMetaList, cb.Name, editStkPnl, controlValues, winDg);
                                     cb.ItemsSource = comboDataTable.DefaultView;
                                     cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
                                     cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
@@ -532,9 +532,9 @@ namespace dbRad
 
                                 getComboRows.CommandText = controlRowSource;
                                 getComboRows.CommandType = CommandType.Text;
-                                getComboRows.Connection = appDbCon;
+                                getComboRows.Connection = windowMetaList.applicationDb;
 
-                                appDbCon.Open();
+                                windowMetaList.applicationDb.Open();
 
                                 {
                                     NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
@@ -547,7 +547,7 @@ namespace dbRad
                                     editStkPnl.Children.Add(cb);
                                     editStkPnl.RegisterName(cb.Name, cb);
                                 }
-                                appDbCon.Close();
+                                windowMetaList.applicationDb.Close();
 
                                 break;
                         }
@@ -557,9 +557,9 @@ namespace dbRad
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Build Form Control:" + ex.Message, controlRowSource);
-                ctrlDbCon.Close();
+                windowMetaList.controlDb.Close();
             }
-            ctrlDbCon.Close();
+            windowMetaList.controlDb.Close();
 
             //Event Handler's
 

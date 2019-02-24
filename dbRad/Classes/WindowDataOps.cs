@@ -166,10 +166,6 @@ namespace dbRad.Classes
         //Loads a single row from the database into a table for the record for the selected ID
         {
  
-            //WindowMetaList windowMetaList = WindowTasks.winMetadataList(applicationTableId);
-
-            NpgsqlConnection appDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(windowMetaList.ApplicationName));
-
             string sql = "SELECT * FROM " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " WHERE " + windowMetaList.TableKey + " = @Id";
 
             DataTable winSelectedRowDataTable = new DataTable();
@@ -178,9 +174,9 @@ namespace dbRad.Classes
             winSelectedRowSql.CommandText = sql;
             winSelectedRowSql.Parameters.AddWithValue("@Id", id);
             winSelectedRowSql.CommandType = CommandType.Text;
-            winSelectedRowSql.Connection = appDbCon;
+            winSelectedRowSql.Connection = windowMetaList.applicationDb;
 
-            appDbCon.Open();
+            windowMetaList.applicationDb.Open();
             try
             {
                 NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(winSelectedRowSql);
@@ -189,10 +185,10 @@ namespace dbRad.Classes
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Problem Loading data grid row:" + ex.Message, sql);
-                appDbCon.Close();
+                windowMetaList.applicationDb.Close();
             }
 
-            appDbCon.Close();
+            windowMetaList.applicationDb.Close();
             return winSelectedRowDataTable;
 
         }
@@ -206,31 +202,29 @@ namespace dbRad.Classes
             }
         }
 
-        public static string winDataGridGetBaseSql(string sqlpart, Int32 sqlParam)
+        public static string winDataGridGetBaseSql(string sqlpart, Int32 sqlParam, WindowMetaList windowMetaList)
         //Single row to return user defined DML SQL for DataGrid
         {
-
-            NpgsqlConnection controlDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
 
             NpgsqlCommand getTabSql = new NpgsqlCommand();
 
             getTabSql.CommandText = sqlpart;
             getTabSql.Parameters.AddWithValue("@sqlparam", sqlParam);
             getTabSql.CommandType = CommandType.Text;
-            getTabSql.Connection = controlDbCon;
+            getTabSql.Connection = windowMetaList.controlDb;
 
 
-            controlDbCon.Open();
+            windowMetaList.controlDb.Open();
 
             //Run the SQL cmd to return the base SQL that fills DataGrid
 
             string sqlTxt = Convert.ToString(getTabSql.ExecuteScalar());
-            controlDbCon.Close();
+            windowMetaList.controlDb.Close();
             return sqlTxt;
         }
 
 
-        public static DataTable winPopulateCombo(ComboBox cb, WindowMetaList windowMetaList, string colname, NpgsqlConnection ctrlDbCon, NpgsqlConnection appDbCon, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
+        public static DataTable winPopulateCombo(ComboBox cb, WindowMetaList windowMetaList, string colname, StackPanel editStkPnl, Dictionary<string, string> controlValues, DataGrid winDg)
         {
             NpgsqlCommand getColList = new NpgsqlCommand();
             NpgsqlCommand getComboRows = new NpgsqlCommand();
@@ -251,10 +245,10 @@ namespace dbRad.Classes
             getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
             getColList.Parameters.AddWithValue("@colname", colname);
             getColList.CommandType = CommandType.Text;
-            getColList.Connection = ctrlDbCon;
+            getColList.Connection = windowMetaList.controlDb;
             try
             {
-                ctrlDbCon.Open();
+                windowMetaList.controlDb.Open();
                 {
                     NpgsqlDataReader getColListReader = getColList.ExecuteReader();
                     getColListReader.Read();
@@ -267,7 +261,7 @@ namespace dbRad.Classes
                     controlEnabled = getColListReader["window_control_enabled"].ToString();
                     controlDefaultvalue = getColListReader["column_default_value"].ToString();
                 }
-                ctrlDbCon.Close();
+                windowMetaList.controlDb.Close();
 
                 if (controlOrderBy == string.Empty)
                     controlOrderBy = "\nORDER BY 1";
@@ -279,16 +273,16 @@ namespace dbRad.Classes
 
                 getComboRows.CommandText = controlRowSource;
                 getComboRows.CommandType = CommandType.Text;
-                getComboRows.Connection = appDbCon;
+                getComboRows.Connection = windowMetaList.applicationDb;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "ERROR Reading Data:" + ex.Message, getColList.CommandText);
-                ctrlDbCon.Close();
+                windowMetaList.controlDb.Close();
             }
             try
             {
-                appDbCon.Open();
+                windowMetaList.applicationDb.Open();
                 {
                     NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
 
@@ -297,13 +291,13 @@ namespace dbRad.Classes
                     cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
                     cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
                 }
-                appDbCon.Close();
+                windowMetaList.applicationDb.Close();
                 return comboDataTable;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "ERROR Filling Combo:" + ex.Message, getColList.CommandText);
-                appDbCon.Close();
+                windowMetaList.applicationDb.Close();
                 return comboDataTable;
             }
         }

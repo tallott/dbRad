@@ -1,4 +1,5 @@
 ﻿
+using Npgsql;
 using System;
 
 namespace dbRad.Classes
@@ -12,6 +13,8 @@ namespace dbRad.Classes
         private static string _SchemaLabel = string.Empty;
         private static string _TableKey = string.Empty;
         private static Int32 _TableId = 0;
+        private static NpgsqlConnection _controlDb;
+        private static NpgsqlConnection _applicationDb;
 
         public string ApplicationName
         {
@@ -94,6 +97,29 @@ namespace dbRad.Classes
             set
             {
                 _TableId = value;
+            }
+        }
+        
+        public NpgsqlConnection controlDb
+        {
+            get
+            {
+                return _controlDb;
+            }
+            set
+            {
+                _controlDb = value;
+            }
+        }
+        public NpgsqlConnection applicationDb
+        {
+            get
+            {
+                return _applicationDb;
+            }
+            set
+            {
+                _applicationDb = value;
             }
         }
     }

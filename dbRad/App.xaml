@@ -43,6 +43,9 @@
         <Style x:Key="winTextBlockStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="MaxWidth" Value="400" />
+            <Setter Property="MaxHeight" Value="300" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
             <Setter Property="Margin" Value="4" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="AcceptsReturn" Value="True"/>
