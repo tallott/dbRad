@@ -54,17 +54,6 @@ namespace dbRad.Classes
             return _TabelList;
         }
 
-        public static string TableDml()
-        {
-            string _TableDml =
-            @"SELECT
-                    Dml
-            FROM metadata.application_table
-            WHERE application_table_id = @sqlParam";
-
-            return _TableDml;
-        }
-
         public static string TableFilterDefault()
         {
             string _TableFilterDefault =
@@ -101,18 +90,6 @@ namespace dbRad.Classes
             return _TableFilterList;
         }
         
-
-        public static string TableOrderBy()
-        {
-            string _TableOrderBy =
-            @"SELECT
-                    order_by
-            FROM metadata.application_table
-            WHERE application_table_id = @sqlParam";
-
-            return _TableOrderBy;
-        }
-
         public static string TableMetadata()
         {
             string _TableMetadata =
@@ -121,6 +98,8 @@ namespace dbRad.Classes
                         t.application_table_id,
                         t.table_name,
                         t.table_label,
+                        t.dml as table_dml,
+                        t.order_by as table_order_by,
                         s.schema_name,
                         s.schema_label,
                         t.table_Key,

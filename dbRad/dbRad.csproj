@@ -87,6 +87,7 @@
     <Compile Include="Classes\ControlDatabaseSql.cs" />
     <Compile Include="Classes\DatabaseDataOps.cs" />
     <Compile Include="Classes\DynamicFormData.cs" />
+    <Compile Include="Classes\WindowBuildUtils.cs" />
     <Compile Include="Classes\WindowMetaList.cs" />
     <Compile Include="Config.xaml.cs">
       <DependentUpon>Config.xaml</DependentUpon>

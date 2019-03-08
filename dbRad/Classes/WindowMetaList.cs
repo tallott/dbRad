@@ -9,9 +9,13 @@ namespace dbRad.Classes
         private static string _ApplicationName = string.Empty;
         private static string _TableName = string.Empty;
         private static string _TableLabel = string.Empty;
+        private static string _TableDml = string.Empty;
+        private static string _TableOrderBy = string.Empty;
+        private static string _TableFilter = string.Empty;
         private static string _SchemaName = string.Empty;
         private static string _SchemaLabel = string.Empty;
         private static string _TableKey = string.Empty;
+        private static string _WinMode = string.Empty;
         private static Int32 _TableId = 0;
         private static NpgsqlConnection _controlDb;
         private static NpgsqlConnection _applicationDb;
@@ -52,6 +56,43 @@ namespace dbRad.Classes
             }
         }
 
+        public string TableDml
+        {
+            get
+            {
+                return _TableDml;
+            }
+            set
+            {
+                _TableDml = value;
+            }
+        }
+
+        public string TableOrderBy
+        {
+            get
+            {
+                return _TableOrderBy;
+            }
+            set
+            {
+                _TableOrderBy = value;
+            }
+        }
+
+        public string TableFilter
+        {
+            get
+            {
+                return _TableFilter;
+            }
+            set
+            {
+                _TableFilter = value;
+            }
+        }
+
+
         public string SchemaName
         {
             get
@@ -88,6 +129,18 @@ namespace dbRad.Classes
             }
         }
 
+        public string WinMode
+        {
+            get
+            {
+                return _WinMode;
+            }
+            set
+            {
+                _WinMode = value;
+            }
+        }
+
         public Int32 TableId
         {
             get
@@ -99,8 +152,8 @@ namespace dbRad.Classes
                 _TableId = value;
             }
         }
-        
-        public NpgsqlConnection controlDb
+
+        public NpgsqlConnection ControlDb
         {
             get
             {
@@ -111,7 +164,7 @@ namespace dbRad.Classes
                 _controlDb = value;
             }
         }
-        public NpgsqlConnection applicationDb
+        public NpgsqlConnection ApplicationDb
         {
             get
             {

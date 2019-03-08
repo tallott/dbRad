@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Npgsql;
 
@@ -11,23 +11,26 @@ namespace dbRad.Classes
 {
     public partial class WindowTasks
     {
-        public static WindowMetaList winMetadataList(Int32 tabId)
+        public static WindowMetaList WinMetadataList(Int32 tabId)
         //Returns the list of metadata values for a window
         {
             NpgsqlConnection controlDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
-            
-            WindowMetaList metaList = new WindowMetaList();
-            //Set the control connections
-            metaList.controlDb = controlDb;
-            
+
+            WindowMetaList metaList = new WindowMetaList
+            {
+                //Set the control connections
+                ControlDb = controlDb
+            };
+
             //get the table string values
-            NpgsqlCommand getTab = new NpgsqlCommand();
+            NpgsqlCommand getTab = new NpgsqlCommand
+            {
+                CommandText = ControlDatabaseSql.TableMetadata(),
+                CommandType = CommandType.Text,
+                Connection = controlDb
+            };
 
-            getTab.CommandText = ControlDatabaseSql.TableMetadata();
-
-            getTab.CommandType = CommandType.Text;
             getTab.Parameters.AddWithValue("@tabId", tabId);
-            getTab.Connection = controlDb;
             controlDb.Open();
 
             NpgsqlDataReader getTabReader = getTab.ExecuteReader();
@@ -38,19 +41,21 @@ namespace dbRad.Classes
             metaList.TableKey = getTabReader["table_key"].ToString();
             metaList.TableName = getTabReader["table_name"].ToString();
             metaList.TableLabel = getTabReader["table_label"].ToString();
+            metaList.TableDml = getTabReader["table_dml"].ToString();
+            metaList.TableOrderBy = getTabReader["table_order_by"].ToString();
             metaList.SchemaName = getTabReader["schema_name"].ToString();
             metaList.SchemaLabel = getTabReader["schema_label"].ToString();
 
             //set the application connection
             NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(metaList.ApplicationName));
-            metaList.applicationDb = applicationDb;
+            metaList.ApplicationDb = applicationDb;
 
             controlDb.Close();
             return metaList;
 
         }
 
-        public static Int32 dataGridGetId(DataGrid winDg)
+        public static Int32 DataGridGetId(DataGrid winDg)
         //Gets the Id of the selected grid row
         {
             Int32 selectedRowIdVal;
@@ -67,44 +72,52 @@ namespace dbRad.Classes
             }
         }
 
-        public static void winClose(object sender, RoutedEventArgs e)
+        public static void WinClose(object sender, RoutedEventArgs e)
         {
             Button clicked = (Button)sender;
             Window w = Window.GetWindow(clicked);
             w.Close();
         }
 
-        public static void winSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear)
+        public static void WinSetMode(String winMode, Window winNew, Button btnSave, Button btnNew, Button btnDelete, Button btnExit, Button btnClear, WindowMetaList windowMetaList, TextBox tbWinMode)
         //Sets the various mode for the winow
         {
-            winNew.Resources.Remove("winMode");
-            winNew.Resources.Add("winMode", winMode);
 
             switch (winMode)
 
             {
                 case "SELECT":
-                    btnSave.Visibility = Visibility.Hidden;
-                    btnNew.Visibility = Visibility.Visible;
-                    btnDelete.Visibility = Visibility.Hidden;
-                    btnExit.Visibility = Visibility.Visible;
-                    btnClear.Visibility = Visibility.Visible;
+                    btnSave.IsEnabled = true;
+                    btnNew.IsEnabled = true;
+                    btnDelete.IsEnabled = false;
+                    btnExit.IsEnabled = true;
+                    btnClear.IsEnabled = true;
                     break;
                 case "NEW":
-                    btnSave.Visibility = Visibility.Visible;
-                    btnNew.Visibility = Visibility.Hidden;
-                    btnDelete.Visibility = Visibility.Hidden;
-                    btnExit.Visibility = Visibility.Visible;
-                    btnClear.Visibility = Visibility.Visible;
+                    btnSave.IsEnabled = true;
+                    btnNew.IsEnabled = false;
+                    btnDelete.IsEnabled = false;
+                    btnExit.IsEnabled = true;
+                    btnClear.IsEnabled = true;
                     break;
                 case "EDIT":
-                    btnSave.Visibility = Visibility.Visible;
-                    btnNew.Visibility = Visibility.Visible;
-                    btnDelete.Visibility = Visibility.Visible;
-                    btnExit.Visibility = Visibility.Visible;
-                    btnClear.Visibility = Visibility.Visible;
+                    btnSave.IsEnabled = true;
+                    btnNew.IsEnabled = true;
+                    btnDelete.IsEnabled = true;
+                    btnExit.IsEnabled = true;
+                    btnClear.IsEnabled = true;
+                    break;
+                case "CLEAR":
+                    btnSave.IsEnabled = false;
+                    btnNew.IsEnabled = true;
+                    btnDelete.IsEnabled = false;
+                    btnExit.IsEnabled = true;
+                    btnClear.IsEnabled = true;
+                    winMode = "SELECT";
                     break;
             }
+            tbWinMode.Text = ApplicationEnviroment.ApplicationMessage(winMode);
+            windowMetaList.WinMode = winMode;
 
         }
 
@@ -126,11 +139,12 @@ namespace dbRad.Classes
 
         }
 
-        public static void winClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters)
+        public static void WinClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters, WindowMetaList windowMetaList, Dictionary<string, string> controlValues)
         //Clears the data edit fields
 
         {
-            string filterList = winNew.FindResource("winFilter").ToString();
+            string filterList = windowMetaList.TableFilter;
+            //winNew.FindResource("winFilter").ToString();
             foreach (FrameworkElement element in editStkPnl.Children)
             {
                 string ctlType = element.GetType().Name;
@@ -145,7 +159,9 @@ namespace dbRad.Classes
                                 {
                                     tb.Text = null;
                                 }
+
                                 break;
+
                             case false:
                                 tb.Text = null;
                                 break;
@@ -154,7 +170,6 @@ namespace dbRad.Classes
                         break;
 
                     case "ComboBox":
-
                         ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
                         switch (keepFilters)
                         {
@@ -164,26 +179,31 @@ namespace dbRad.Classes
                                 {
                                     cb.SelectedValue = null;
                                 }
+
                                 break;
+
                             case false:
                                 cb.SelectedValue = null;
                                 break;
 
                         }
                         break;
+
                     case "DatePicker":
                         DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
                         dtp.SelectedDate = null;
                         break;
+
                     case "CheckBox":
                         CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
                         chk.IsChecked = null;
                         break;
+
                 };
             }
         }
 
-        public static void winSetControlDefaultValues(StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        public static void WinSetControlDefaultValues(StackPanel editStkPnl, Dictionary<string, string> controlValues)
         //Clears the list of window values used for filters
         {
             foreach (KeyValuePair<string, string> item in controlValues)
@@ -222,14 +242,14 @@ namespace dbRad.Classes
             }
         }
 
-        public static void winResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch)
+        public static void WinResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch)
         {
             tbSelectorText.Text = "";
             tbOffset.Text = "0";
             tbFetch.Text = "25";
         }
 
-        public static void winDataGridSelectRow(Int32 id, DataGrid winDg)
+        public static void WinDataGridSelectRow(Int32 id, DataGrid winDg)
         //Selects the row in the data grid for the current id
         {
             winDg.UpdateLayout();
@@ -238,10 +258,9 @@ namespace dbRad.Classes
                 for (int i = 0; i < winDg.Items.Count; i++)
                 {
                     DataGridRow row = (DataGridRow)winDg.ItemContainerGenerator.ContainerFromIndex(i);
-                    TextBlock cellContent = winDg.Columns[0].GetCellContent(row) as TextBlock;
 
 
-                    if (cellContent != null && cellContent.Text.Equals(id.ToString()))
+                    if (winDg.Columns[0].GetCellContent(row) is TextBlock cellContent && cellContent.Text.Equals(id.ToString()))
                     {
                         object item = winDg.Items[i];
                         winDg.SelectedItem = item;
