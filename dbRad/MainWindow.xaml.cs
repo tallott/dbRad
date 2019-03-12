@@ -8,6 +8,9 @@ using System.Reflection;
 using dbRad.Classes;
 using Npgsql;
 using System.Windows.Controls.Primitives;
+using System.Drawing;
+using System.Windows.Media;
+using System.Linq;
 
 namespace dbRad
 {
@@ -41,7 +44,7 @@ namespace dbRad
             }
             else
             {
-                MainWinBuild();
+                MainWinBuild(false);
             }
 
         }
@@ -50,12 +53,21 @@ namespace dbRad
         private void ShowConfig(object sender, EventArgs e)
         //Open config window
         {
+            this.Hide();
             Window winConfig = new Config();
-            winConfig.Show();
+            winConfig.ShowDialog();
+            MainWinBuild(true);
+            this.Show();
         }
 
-        private void MainWinBuild()
+        void FileExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Close this window
+            this.Close();
+        }
 
+        private void MainWinBuild(Boolean IsRefresh)
+       
         //Builds the main window for the appDbName
         {
             NpgsqlConnection ctrlAppDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
@@ -70,8 +82,34 @@ namespace dbRad
             string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
             Title = "Connection - " + userName + "@" + appHost + " (Software Version:" + version + ")";
 
+
+
             //Build Main Menu
 
+            if (IsRefresh)
+            {
+                for (int i = this.menuGrid.Children.Count - 1; i >= 0; --i)
+                {
+                    var childTypeName = menuGrid.Children[i].GetType().Name;
+                    if (childTypeName == "Menu")
+                    {
+                        menuGrid.Children.RemoveAt(i);
+                    }
+                }
+                
+            }
+
+            Menu menu = new Menu
+            {
+                Name = "menu",
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Height = 27,
+                VerticalAlignment = VerticalAlignment.Top,
+                Width = 1367
+            };
+            menuGrid.Children.Add(menu);
+
+            
             //A File Menu
             MenuItem fileMenu = new MenuItem
             {
@@ -84,7 +122,7 @@ namespace dbRad
             {
                 Header = "Exit"
             };
-            fileExitItem.Click += new RoutedEventHandler(ApplicationUtils.appShutdown);
+            fileExitItem.Click += new RoutedEventHandler(FileExitMenuItem_Click);
             fileMenu.Items.Add(fileExitItem);
 
             //A config Menu
@@ -197,8 +235,10 @@ namespace dbRad
             {
                 MessageBox.Show("Cannot Open connection:" + ex.Message, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 ctrlSchDbCon.Close();
+                this.Hide();
                 Window config = new Config();
-                config.Show();
+                config.ShowDialog();
+                MainWinBuild(true);
             };
             Show();
         }
@@ -206,8 +246,6 @@ namespace dbRad
         private void WinConstruct(Int32 applicationTableId)
         //Builds the window for applicationTableId
         {
-
-
             string controlName = string.Empty;
             string controlLabel = string.Empty;
             string controlRowSource = string.Empty;
@@ -277,48 +315,40 @@ namespace dbRad
                 Height = GridLength.Auto
             };
 
-
-
             //Data Grids
-            //Create a read only DataGrid to display rows from the underlying table
-            DataGrid winDg = new DataGrid
-            {
-                Style = (Style)FindResource("DataGridStyle"),
-                IsReadOnly = true,
-                SelectionMode = DataGridSelectionMode.Single
-            };
+            //Create a Grid containing a DataGrid to display rows from the underlying table
+            Grid dataGrid = new Grid();
+            DataGrid windowDataGrid = new DataGrid();
+            WindowBuildUtils.DataGridInGrid("DataGridStyle", "DataGridGridStyle", "ControlBorderStyle", windowDataGrid, dataGrid);
 
-            //A grid with border
-                      
+            //A Grid containing a StackPanel for the Editing controls
             Grid editGrid = new Grid();
             StackPanel editStkPnl = new StackPanel();
             WindowBuildUtils.StackPanelInGrid("winEditPanelStyle", "ControlGridStyle", "ControlBorderStyle", editStkPnl, editGrid);
-                        
             NameScope.SetNameScope(editStkPnl, new NameScope());
 
-            //Filter area
+            //A Grid containg a StackPanel for the Filter selector
             Grid fltGrid = new Grid();
             StackPanel fltStkPnl = new StackPanel();
             WindowBuildUtils.StackPanelInGrid("winFilterStack", "ControlGridStyle", "ControlBorderStyle", fltStkPnl, fltGrid);
 
-            //Button area
+            //A Grid containing a StackPane for the Buttons
             Grid buttonGrid = new Grid();
             StackPanel buttonStkPnl = new StackPanel();
             WindowBuildUtils.StackPanelInGrid("winButtonStack", "ControlGridStyle", "ControlBorderStyle", buttonStkPnl, buttonGrid);
 
-            //Record selector area
+            //A Grid containg a StackPanel for the Record selectors
             Grid recordSelectorGrid = new Grid();
             StackPanel recordSelectorStkPnl = new StackPanel();
             WindowBuildUtils.StackPanelInGrid("winPageSelectorStack", "ControlGridStyle", "ControlBorderStyle", recordSelectorStkPnl, recordSelectorGrid);
 
-            //Message area
-
+            //A Grid containing a StackPanel for the Message area
             StackPanel messageStkPnl = new StackPanel();
             Grid messageGrid = new Grid();
             WindowBuildUtils.StackPanelInGrid("winMessageStack", "ControlGridStyle", "ControlBorderStyle", messageStkPnl, messageGrid);
 
             //Other Controls
-            //Combo for Filter Selector
+            //Label & Combo for Filter Selector
             Label labelFlt = new Label
             {
                 Content = "Select Filter",
@@ -330,7 +360,7 @@ namespace dbRad
                 Style = (Style)FindResource("winComboBoxStyle")
             };
 
-            //The buttons - Save, New, Delete, Exit
+            //The buttons
             Button btnSave = new Button
             {
                 Name = "btnSave",
@@ -383,20 +413,23 @@ namespace dbRad
 
             TextBox tbSelectorText = new TextBox
             {
-                Style = (Style)FindResource("winTinyTextBoxStyle")
+                Style = (Style)FindResource("winTinyTextBoxStyle"),
+                Text = string.Empty
             };
 
             TextBox tbOffset = new TextBox
             {
-                Visibility = Visibility.Collapsed
+                Visibility = Visibility.Collapsed,
+                Text = "0"
             };
 
             TextBox tbFetch = new TextBox
             {
-                Visibility = Visibility.Collapsed
+                Visibility = Visibility.Collapsed,
+                Text = windowMetaList.PageRowCount
             };
 
-            WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
+            //WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
 
             //The Message controls
             TextBox tbWinMode = new TextBox
@@ -404,7 +437,6 @@ namespace dbRad
                 Name = "tbWinMode",
                 Style = (Style)FindResource("winMessageTextBoxStyle")
             };
-            messageStkPnl.Children.Add(tbWinMode);
 
             //Populate Data tables
             //Window Filter - Gets the list of filters for the window based on the underlying database table
@@ -428,10 +460,9 @@ namespace dbRad
             }
             windowMetaList.ControlDb.Close();
 
-            //Set the Filter default value
-            winFlt.SelectedIndex = 0;
 
-            //Add controls to the window editing area Stack panel based on underlying database columns
+
+            //Create and Add controls to the window editing area Stack panel based on underlying database columns
             NpgsqlCommand getColList = new NpgsqlCommand
             {
                 CommandText = ControlDatabaseSql.ColumnMetadata()
@@ -535,7 +566,7 @@ namespace dbRad
                                     Tag = controlType,
                                     IsEnabled = Convert.ToBoolean(controlEnabled)
                                 };
-                                nb.PreviewTextInput += ApplicationUtils.numberValidationTextBox;
+                                nb.PreviewTextInput += ApplicationUtils.NumberValidationTextBox;
                                 nb.TextChanged += new TextChangedEventHandler((s, e) =>
                                                                {
                                                                    WindowDataOps.WinGetControlValue(nb, controlValues);
@@ -603,7 +634,7 @@ namespace dbRad
                                         WindowDataOps.WinGetControlValue(cb, controlValues);
                                         if (windowMetaList.WinMode != "EDIT")
                                         {
-                                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
                                         }
                                     }
                                     else
@@ -632,7 +663,7 @@ namespace dbRad
                                 controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
 
                                 NpgsqlCommand getComboRows = new NpgsqlCommand();
-                                Int32 selectedRowIdVal = WindowTasks.DataGridGetId(winDg);
+                                Int32 selectedRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
                                 getComboRows.CommandText = controlRowSource;
                                 getComboRows.CommandType = CommandType.Text;
                                 getComboRows.Connection = windowMetaList.ApplicationDb;
@@ -655,6 +686,8 @@ namespace dbRad
                                 break;
                         }
                     };
+
+
                 }
             }
             catch (Exception ex)
@@ -664,15 +697,17 @@ namespace dbRad
             }
             windowMetaList.ControlDb.Close();
 
+            //
+
             //Event Handler's
 
             //Data Grid
-            winDg.SelectionChanged += new SelectionChangedEventHandler((s, e) =>
+            windowDataGrid.SelectionChanged += new SelectionChangedEventHandler((s, e) =>
             {
-                if (winDg.SelectedItem == null) return;
+                if (windowDataGrid.SelectedItem == null) return;
 
                 WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                WindowDataOps.WinDataGridClicked(windowMetaList, winDg, 0, editStkPnl, controlValues);
+                WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, 0, editStkPnl, controlValues);
             });
 
             //Filter Selector
@@ -680,9 +715,9 @@ namespace dbRad
             {
                 ComboBox clicked = (ComboBox)s;
                 selectedFilter = (Int32)clicked.SelectedValue;
-                WindowTasks.WinSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
+                WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
                 WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
             }
@@ -694,24 +729,24 @@ namespace dbRad
                 switch (windowMetaList.WinMode)
                 {
                     case "NEW":
-                        if (DatabaseDataOps.DbCreateRecord(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText) == true)
+                        if (DatabaseDataOps.DbCreateRecord(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText) == true)
                         {
                             WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
                             WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
                             WindowTasks.WinSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
 
                         }
                         break;
                     case "EDIT":
-                        selectedDataGridRowIdVal = WindowTasks.DataGridGetId(winDg);
+                        selectedDataGridRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
 
-                        if (DatabaseDataOps.DbUpdateRecord(windowMetaList, winDg, editStkPnl) == true)
+                        if (DatabaseDataOps.DbUpdateRecord(windowMetaList, windowDataGrid, editStkPnl) == true)
                         {
                             WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-                            WindowTasks.WinDataGridSelectRow(selectedDataGridRowIdVal, winDg);
-                            WindowDataOps.WinDataGridClicked(windowMetaList, winDg, selectedDataGridRowIdVal, editStkPnl, controlValues);
+                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                            WindowTasks.WinDataGridSelectRow(selectedDataGridRowIdVal, windowDataGrid);
+                            WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, selectedDataGridRowIdVal, editStkPnl, controlValues);
                         }
                         break;
                 }
@@ -725,11 +760,11 @@ namespace dbRad
             });
             btnDelete.Click += new RoutedEventHandler((s, e) =>
             {
-                DatabaseDataOps.DbDeleteRecord(windowMetaList, winDg);
+                DatabaseDataOps.DbDeleteRecord(windowMetaList, windowDataGrid);
 
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
 
-                WindowTasks.WinSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
+                WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
                 WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
             });
@@ -742,12 +777,12 @@ namespace dbRad
                 WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowDataOps.WinClearControlDictionaryValues(controlValues);
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
 
             });
             tbOffset.TextChanged += new TextChangedEventHandler((s, e) =>
             {
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
             });
 
             btnNextPage.Click += new RoutedEventHandler((s, e) =>
@@ -767,6 +802,7 @@ namespace dbRad
 
             //Build up the layout with UI parts
 
+
             //Add Rows and Columns to the Grid
             mainGrid.ColumnDefinitions.Add(col1);
             mainGrid.ColumnDefinitions.Add(col2);
@@ -777,11 +813,11 @@ namespace dbRad
             mainGrid.RowDefinitions.Add(row4);
 
             //Add the datagrid to the window
-            Grid.SetColumn(winDg, 1);
-            Grid.SetRow(winDg, 1);
-            Grid.SetRowSpan(winDg, 1);
+            Grid.SetColumn(dataGrid, 1);
+            Grid.SetRow(dataGrid, 1);
+            Grid.SetRowSpan(dataGrid, 1);
 
-            mainGrid.Children.Add(winDg);
+            mainGrid.Children.Add(dataGrid);
 
             //Add combo/text to stack panel
             fltStkPnl.Children.Add(labelFlt);
@@ -825,7 +861,7 @@ namespace dbRad
             mainGrid.Children.Add(recordSelectorGrid);
 
             //Add Message Area
-
+            messageStkPnl.Children.Add(tbWinMode);
             Grid.SetColumn(messageGrid, 0);
             Grid.SetRow(messageGrid, 3);
             Grid.SetColumnSpan(messageGrid, 3);
@@ -833,11 +869,15 @@ namespace dbRad
 
             //Add Main Grid to window
             winNew.Content = mainGrid;
-            winNew.SizeToContent = SizeToContent.WidthAndHeight;
+
+
+            //Prepare the form with data and set mode
+
+            winFlt.SelectedIndex = 0;
+            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, 0, controlValues, tbOffset, tbSelectorText);
+            WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
             winNew.Show();
 
-            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, winDg, 0, controlValues, tbOffset, tbFetch, tbSelectorText);
-            WindowTasks.WinSetMode("SELECT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
         }
     }
 }

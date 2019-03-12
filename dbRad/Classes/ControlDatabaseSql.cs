@@ -100,6 +100,7 @@ namespace dbRad.Classes
                         t.table_label,
                         t.dml as table_dml,
                         t.order_by as table_order_by,
+                        COALESCE(t.page_row_count,'25') as page_row_count,
                         s.schema_name,
                         s.schema_label,
                         t.table_Key,

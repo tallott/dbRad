@@ -12,6 +12,7 @@ namespace dbRad.Classes
         private static string _TableDml = string.Empty;
         private static string _TableOrderBy = string.Empty;
         private static string _TableFilter = string.Empty;
+        private static string _PageRowCount = string.Empty;
         private static string _SchemaName = string.Empty;
         private static string _SchemaLabel = string.Empty;
         private static string _TableKey = string.Empty;
@@ -92,6 +93,17 @@ namespace dbRad.Classes
             }
         }
 
+        public string PageRowCount
+        {
+            get
+            {
+                return _PageRowCount;
+            }
+            set
+            {
+                _PageRowCount = value;
+            }
+        }
 
         public string SchemaName
         {

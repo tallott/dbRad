@@ -10,7 +10,7 @@ namespace dbRad.Classes
 {
     class DatabaseDataOps
     {
-        public static void DbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void DbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
             DataTable winDt = new DataTable();
@@ -48,7 +48,7 @@ namespace dbRad.Classes
             string sqlCountText = sqlTxt;
 
             //Add Order by
-            sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
+            sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + windowMetaList.PageRowCount + " ROWS ONLY";
 
             try
             {
@@ -74,7 +74,7 @@ namespace dbRad.Classes
                         sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
                         NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, windowMetaList.ApplicationDb);
                         rowCount = Convert.ToInt32(countRows.ExecuteScalar());
-                        Int32 pageSize = Convert.ToInt32(tbFetch.Text);
+                        Int32 pageSize = Convert.ToInt32(windowMetaList.PageRowCount);
                         Int32 offSet = Convert.ToInt32(tbOffset.Text);
 
                         string pageCount = Convert.ToString((rowCount / pageSize) + 1);

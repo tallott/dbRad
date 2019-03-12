@@ -59,6 +59,7 @@ namespace dbRad.Classes
                         //Set the value of the control col.Name in the window to the value returned by row[col]
                         rowCol = row[col].ToString();
                         columnName = col.ColumnName;
+
                         //Determine the Type of control
                         object obj = editStkPnl.FindName(columnName);
 

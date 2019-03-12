@@ -43,6 +43,7 @@ namespace dbRad.Classes
             metaList.TableLabel = getTabReader["table_label"].ToString();
             metaList.TableDml = getTabReader["table_dml"].ToString();
             metaList.TableOrderBy = getTabReader["table_order_by"].ToString();
+            metaList.PageRowCount = getTabReader["page_row_count"].ToString();
             metaList.SchemaName = getTabReader["schema_name"].ToString();
             metaList.SchemaLabel = getTabReader["schema_label"].ToString();
 
@@ -74,8 +75,20 @@ namespace dbRad.Classes
 
         public static void WinClose(object sender, RoutedEventArgs e)
         {
-            Button clicked = (Button)sender;
-            Window w = Window.GetWindow(clicked);
+            Window w = new Window();
+
+            switch (sender.GetType().Name)
+            {
+                case "Button":
+                    Button buttonClicked = (Button)sender;
+                    w = Window.GetWindow(buttonClicked);
+                    break;
+
+                case "MenuItem":
+                    MenuItem menuItemClicked = (MenuItem)sender;
+                    w = Window.GetWindow(menuItemClicked);
+                    break;
+            }
             w.Close();
         }
 
@@ -121,23 +134,23 @@ namespace dbRad.Classes
 
         }
 
-        public static void ResetWinMain()
-        {
+        //public static void ResetWinMain()
+        //{
 
-            Window winMain = new dbRad.MainWindow();
-            winMain.Show();
-            foreach (Window window in App.Current.Windows)
-            {
-                if (window.Name != "winConfig")
-                {
+        //    Window winMain = new dbRad.MainWindow();
+        //    winMain.Show();
+        //    foreach (Window window in App.Current.Windows)
+        //    {
+        //        if (window.Name != "winConfig")
+        //        {
 
-                    window.Close();
-                    break;
+        //            window.Close();
+        //            break;
 
-                }
-            }
+        //        }
+        //    }
 
-        }
+        //}
 
         public static void WinClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters, WindowMetaList windowMetaList, Dictionary<string, string> controlValues)
         //Clears the data edit fields
@@ -246,7 +259,7 @@ namespace dbRad.Classes
         {
             tbSelectorText.Text = "";
             tbOffset.Text = "0";
-            tbFetch.Text = "25";
+            tbFetch.Text = "1000";
         }
 
         public static void WinDataGridSelectRow(Int32 id, DataGrid winDg)

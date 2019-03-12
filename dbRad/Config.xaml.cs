@@ -36,10 +36,10 @@ namespace dbRad
             Window window = this;
             window.Name = "winConfig";
             window.Style = FindStyle("winStyle");
-            window.Closed += new EventHandler((s, e) =>
-                {
-                    WindowTasks.ResetWinMain();
-                });
+            //window.Closed += new EventHandler((s, e) =>
+            //    {
+            //        WindowTasks.ResetWinMain();
+            //    });
 
             Grid mainGrid = new Grid();
             TabControl tabControl = new TabControl();
@@ -135,7 +135,7 @@ namespace dbRad
             {
                 if (Config.appDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
                 {
-                    ApplicationUtils.appShutdown(s, e);
+                    ApplicationUtils.AppShutdown(s, e);
                 }
                 else
                 {
