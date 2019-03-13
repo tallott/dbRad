@@ -705,7 +705,7 @@ namespace dbRad
             windowDataGrid.SelectionChanged += new SelectionChangedEventHandler((s, e) =>
             {
                 if (windowDataGrid.SelectedItem == null) return;
-
+                windowMetaList.GridSelectedIndex = windowDataGrid.SelectedIndex;
                 WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, 0, editStkPnl, controlValues);
             });
@@ -716,7 +716,7 @@ namespace dbRad
                 ComboBox clicked = (ComboBox)s;
                 selectedFilter = (Int32)clicked.SelectedValue;
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
+                WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch, windowMetaList);
                 DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
                 WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
@@ -745,7 +745,7 @@ namespace dbRad
                         {
                             WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                             DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
-                            WindowTasks.WinDataGridSelectRow(selectedDataGridRowIdVal, windowDataGrid);
+                            WindowTasks.WinDataGridSelectRow(selectedDataGridRowIdVal, windowDataGrid, windowMetaList);
                             WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, selectedDataGridRowIdVal, editStkPnl, controlValues);
                         }
                         break;
@@ -774,7 +774,7 @@ namespace dbRad
                 selectedFilter = 0;
                 winFlt.SelectedIndex = selectedFilter;
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, false, windowMetaList, controlValues);
-                WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
+                WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch, windowMetaList);
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowDataOps.WinClearControlDictionaryValues(controlValues);
                 DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);

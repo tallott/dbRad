@@ -255,33 +255,25 @@ namespace dbRad.Classes
             }
         }
 
-        public static void WinResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch)
+        public static void WinResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch, WindowMetaList windowMetaList)
         {
             tbSelectorText.Text = "";
             tbOffset.Text = "0";
-            tbFetch.Text = "1000";
+            tbFetch.Text = windowMetaList.PageRowCount;
         }
 
-        public static void WinDataGridSelectRow(Int32 id, DataGrid winDg)
+        public static void WinDataGridSelectRow(Int32 id, DataGrid winDg, WindowMetaList windowMetaList)
         //Selects the row in the data grid for the current id
         {
-            winDg.UpdateLayout();
+            int x = windowMetaList.GridSelectedIndex;
             try
             {
-                for (int i = 0; i < winDg.Items.Count; i++)
-                {
-                    DataGridRow row = (DataGridRow)winDg.ItemContainerGenerator.ContainerFromIndex(i);
-
-
-                    if (winDg.Columns[0].GetCellContent(row) is TextBlock cellContent && cellContent.Text.Equals(id.ToString()))
-                    {
-                        object item = winDg.Items[i];
-                        winDg.SelectedItem = item;
-                        winDg.ScrollIntoView(item);
-                        row.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-                        break;
-                    }
-                }
+                object item = winDg.Items[x];
+                winDg.SelectedItem = item;
+                winDg.ScrollIntoView(item);
+                winDg.UpdateLayout();
+                DataGridRow row = (DataGridRow)winDg.ItemContainerGenerator.ContainerFromIndex(x);
+                row.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
             }
             catch (Exception ex)
             {

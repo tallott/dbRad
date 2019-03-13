@@ -17,6 +17,7 @@ namespace dbRad.Classes
         private static string _SchemaLabel = string.Empty;
         private static string _TableKey = string.Empty;
         private static string _WinMode = string.Empty;
+        private static Int32 _GridSelectedIndex = -1;
         private static Int32 _TableId = 0;
         private static NpgsqlConnection _controlDb;
         private static NpgsqlConnection _applicationDb;
@@ -150,6 +151,18 @@ namespace dbRad.Classes
             set
             {
                 _WinMode = value;
+            }
+        }
+
+        public Int32 GridSelectedIndex
+        {
+            get
+            {
+                return _GridSelectedIndex;
+            }
+            set
+            {
+                _GridSelectedIndex = value;
             }
         }
 
