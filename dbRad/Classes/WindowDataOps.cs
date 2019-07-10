@@ -245,7 +245,7 @@ namespace dbRad.Classes
             string controlType;
             string controlEnabled;
             string controlDefaultvalue;
-
+           
             getColList.CommandText = ControlDatabaseSql.ColumnMetadataForColumn();
 
             getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);

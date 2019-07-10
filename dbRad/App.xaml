@@ -35,6 +35,14 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Margin" Value="2" />
         </Style>
+        <Style x:Key="winTextBoxRequiredStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="MinWidth" Value="50" />
+            <Setter Property="Width" Value="Auto" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="Background" Value="MistyRose" />
+        </Style>        
         <Style x:Key="winTinyTextBoxStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="MinWidth" Value="50" />
@@ -53,6 +61,17 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="AcceptsReturn" Value="True"/>
         </Style>
+        <Style x:Key="winTextBlockRequiredStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Width" Value="400" />
+            <Setter Property="MaxHeight" Value="300" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="Background" Value="MistyRose" />
+        </Style>
         <Style x:Key="winNumBoxStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="MinWidth" Value="50" />
@@ -66,6 +85,7 @@
             <Setter Property="Width" Value="NaN" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Margin" Value="4" />
+            <Setter Property="Background" Value="MistyRose" />
         </Style>
         <Style x:Key="winDatePickerStyle" TargetType="DatePicker">
             <Setter Property="Padding" Value="8,4" />
@@ -78,7 +98,13 @@
             <Setter Property="Padding" Value="8,4" />
         </Style>
         <Style x:Key="winLabelStyle" TargetType="Label">
-            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Width" Value="NaN" />
+        </Style>
+        <Style x:Key="winLabelRequiredStyle" TargetType="Label">
+            <Setter Property="FontWeight" Value="ExtraBold" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Width" Value="NaN" />

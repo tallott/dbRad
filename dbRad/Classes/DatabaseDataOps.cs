@@ -4,6 +4,7 @@ using System.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using Npgsql;
 
 namespace dbRad.Classes
@@ -36,7 +37,7 @@ namespace dbRad.Classes
             windowMetaList.TableFilter = WindowDataOps.SubstituteWindowParameters(WindowDataOps.WinDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList), controlValues);
 
             sqlParam = windowMetaList.TableId;
-  
+
 
             //Set order by
             string sqlOrderBy = windowMetaList.TableOrderBy;
@@ -52,40 +53,37 @@ namespace dbRad.Classes
 
             try
             {
+                windowMetaList.ControlDb.Open();
+                windowMetaList.ApplicationDb.Open();
                 {
-                    windowMetaList.ControlDb.Open();
-                    windowMetaList.ApplicationDb.Open();
-                    {
-                        //Run the SQL cmd to return SQL that fills DataGrid
-                        NpgsqlCommand execTabSql = windowMetaList.ApplicationDb.CreateCommand();
-                        execTabSql.CommandText = sqlTxt;
+                    //Run the SQL cmd to return SQL that fills DataGrid
+                    NpgsqlCommand execTabSql = windowMetaList.ApplicationDb.CreateCommand();
+                    execTabSql.CommandText = sqlTxt;
 
-                        //Create an adapter and fill the grid using sql and adapater
-                        NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(execTabSql);
-                        winDa.Fill(winDt);
-                        winDg.ItemsSource = winDt.DefaultView;
+                    //Create an adapter and fill the grid using sql and adapater
+                    NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(execTabSql);
+                    winDa.Fill(winDt);
+                    winDg.ItemsSource = winDt.DefaultView;
 
-                        //set the page counter
-                        Int32 rowCount = 0;
+                    //set the page counter
+                    Int32 rowCount = 0;
 
-                        Int32 chrStart = sqlCountText.IndexOf("SELECT") + 6;
-                        Int32 chrEnd = sqlCountText.IndexOf("FROM");
+                    Int32 chrStart = sqlCountText.IndexOf("SELECT") + 6;
+                    Int32 chrEnd = sqlCountText.IndexOf("FROM");
 
-                        sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
-                        NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, windowMetaList.ApplicationDb);
-                        rowCount = Convert.ToInt32(countRows.ExecuteScalar());
-                        Int32 pageSize = Convert.ToInt32(windowMetaList.PageRowCount);
-                        Int32 offSet = Convert.ToInt32(tbOffset.Text);
+                    sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
+                    NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, windowMetaList.ApplicationDb);
+                    rowCount = Convert.ToInt32(countRows.ExecuteScalar());
+                    Int32 pageSize = Convert.ToInt32(windowMetaList.PageRowCount);
+                    Int32 offSet = Convert.ToInt32(tbOffset.Text);
 
-                        string pageCount = Convert.ToString((rowCount / pageSize) + 1);
-                        string pageNumber = Convert.ToString((offSet / pageSize) + 1);
+                    string pageCount = Convert.ToString((rowCount / pageSize) + 1);
+                    string pageNumber = Convert.ToString((offSet / pageSize) + 1);
 
+                    tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
 
-                        tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
-
-                        windowMetaList.ControlDb.Close();
-                        windowMetaList.ApplicationDb.Close();
-                    }
+                    windowMetaList.ControlDb.Close();
+                    windowMetaList.ApplicationDb.Close();
                 }
             }
             catch (Exception ex)
@@ -103,64 +101,79 @@ namespace dbRad.Classes
             List<string> columnUpdates = new List<string>();
 
             string sql = string.Empty;
-
+            string ctlName = string.Empty;
+            string ctlType = string.Empty;
+            FrameworkElement e;
             try
             {
-                foreach (FrameworkElement element in editStkPnl.Children)
+                try
                 {
-                    string ctlType = element.GetType().Name;
-
-                    if (element.Name != windowMetaList.TableKey & ctlType != "Label" & element.IsEnabled == true)
+                    foreach (FrameworkElement element in editStkPnl.Children)
                     {
-                        switch (ctlType)
+                        e = element;
+                        ctlType = e.GetType().Name;
+                        ctlName = e.Name;
+
+                        if (ctlName != windowMetaList.TableKey & ctlType != "Label" & e.IsEnabled == true)
                         {
-                            case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                if (tb.Tag.ToString() != "NUM")
-                                {
-                                    columnUpdates.Add("'" + tb.Text.Replace("'", "''") + "'");
-                                }
-                                else
-                                {
-
-                                    if (tb.Text == "")
+                            switch (ctlType)
+                            {
+                                case "TextBox":
+                                    TextBox tb = (TextBox)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    if (tb.Tag.ToString() != "NUM")
                                     {
-                                        tb.Text = "0";
+                                        columnUpdates.Add("'" + tb.Text.Replace("'", "''") + "'");
                                     }
-                                    columnUpdates.Add(tb.Text);
-                                }
-                                break;
+                                    else
+                                    {
 
-                            case "ComboBox":
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add(cb.SelectedValue.ToString());
-                                break;
+                                        if (tb.Text == "")
+                                        {
+                                            tb.Text = "0";
+                                        }
+                                        columnUpdates.Add(tb.Text);
+                                    }
+                                    break;
 
-                            case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                if (dtp.SelectedDate != null)
-                                {
-                                    columnUpdates.Add("'" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "'");
-                                }
-                                else
-                                {
-                                    columnUpdates.Add("NULL");
-                                }
-                                break;
+                                case "ComboBox":
+                                    ComboBox cb = (ComboBox)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    columnUpdates.Add(cb.SelectedValue.ToString());
+                                    break;
 
-                            case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add("CAST(" + ((bool)chk.IsChecked ? 1 : 0).ToString() + " AS boolean)");
-                                break;
+                                case "DatePicker":
+                                    DatePicker dtp = (DatePicker)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    if (dtp.SelectedDate != null)
+                                    {
+                                        columnUpdates.Add("'" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "'");
+                                    }
+                                    else
+                                    {
+                                        columnUpdates.Add("NULL");
+                                    }
+                                    break;
 
-                        };
+                                case "CheckBox":
+                                    CheckBox chk = (CheckBox)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    columnUpdates.Add("CAST(" + ((bool)chk.IsChecked ? 1 : 0).ToString() + " AS boolean)");
+                                    break;
+                            }
+                        }
 
                     }
+
                 }
+                catch (NullReferenceException ex)
+                {
+                    WindowTasks.DisplayMessage("Try entering a value for: " + ctlName);
+
+                    return false;
+                }
+
+
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
                 sql = "INSERT INTO " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " " + csvColumns + csvColumnUpdates;
@@ -186,7 +199,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static Boolean DbUpdateRecord(WindowMetaList windowMetaList, DataGrid winDg, StackPanel editStkPnl)
+        public static Boolean DbUpdateRecord(WindowMetaList windowMetaList, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValueRequired)
         //updates the database with values in the data edit fields
 
         {

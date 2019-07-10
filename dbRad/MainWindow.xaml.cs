@@ -7,9 +7,6 @@ using System.IO;
 using System.Reflection;
 using dbRad.Classes;
 using Npgsql;
-using System.Windows.Controls.Primitives;
-using System.Drawing;
-using System.Windows.Media;
 using System.Linq;
 
 namespace dbRad
@@ -67,7 +64,7 @@ namespace dbRad
         }
 
         private void MainWinBuild(Boolean IsRefresh)
-       
+
         //Builds the main window for the appDbName
         {
             NpgsqlConnection ctrlAppDbCon = new NpgsqlConnection(ApplicationEnviroment.ConnectionString("control"));
@@ -96,7 +93,7 @@ namespace dbRad
                         menuGrid.Children.RemoveAt(i);
                     }
                 }
-                
+
             }
 
             Menu menu = new Menu
@@ -109,7 +106,7 @@ namespace dbRad
             };
             menuGrid.Children.Add(menu);
 
-            
+
             //A File Menu
             MenuItem fileMenu = new MenuItem
             {
@@ -254,10 +251,16 @@ namespace dbRad
             string controlType = string.Empty;
             string controlEnabled = string.Empty;
             string controlDefaultValue = string.Empty;
+            string controlRequiredValue = string.Empty;
+            string controlDescription = string.Empty;
+            string controlStyle = null;
 
             //These dictionaries are used to pass control values between classes for each instance of a window
             Dictionary<string, string> controlValues = new Dictionary<string, string>();
             Dictionary<string, string> controlValueDefaults = new Dictionary<string, string>();
+            Dictionary<string, string> controlValueRequired = new Dictionary<string, string>();
+
+            DataTable Controls = new DataTable();
 
             Int32 selectedDataGridRowIdVal = 0;
             Int32 selectedFilter = 0;
@@ -268,436 +271,265 @@ namespace dbRad
             WindowMetaList windowMetaList = WindowTasks.WinMetadataList(applicationTableId);
 
             //Create a new window - we will add various UI elements to the window based on the applicationTableId
-            Window winNew = new Window
-            {
-                Style = (Style)FindResource("winStyle"),
-                Title = "Manage " + windowMetaList.TableLabel + " (" + windowMetaList.TableName + ")",
-                Name = windowMetaList.TableName
-            };
-            winNew.Activated += new EventHandler((s, e) =>
-            {
-                windowMetaList = WindowTasks.WinMetadataList(applicationTableId);
-            });
+            Window winNew = WindowBuildUtils.CreateWindow(windowMetaList, applicationTableId);
 
             //Main layout Grid - 2 cols by 3 rows
-            Grid mainGrid = new Grid();
-
-            //1st Column
-            ColumnDefinition col1 = new ColumnDefinition
-            {
-                Width = GridLength.Auto
-            };
-
-            //2nd Column
-            ColumnDefinition col2 = new ColumnDefinition();
-            col1.Width = GridLength.Auto;
-
-            //1st Row
-            RowDefinition row1 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-
-            //2nd row
-            RowDefinition row2 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-
-            //3rd row
-            RowDefinition row3 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-            //4th row
-            RowDefinition row4 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
+            Grid mainGrid = WindowBuildUtils.CreateMainGrid();
 
             //Data Grids
-            //Create a Grid containing a DataGrid to display rows from the underlying table
+            //Create a Grid containing a DataGrid to display rows from the underlying applicatioin table
             Grid dataGrid = new Grid();
-            DataGrid windowDataGrid = new DataGrid();
-            WindowBuildUtils.DataGridInGrid("DataGridStyle", "DataGridGridStyle", "ControlBorderStyle", windowDataGrid, dataGrid);
+            DataGrid windowDataGrid = WindowBuildUtils.CreateDataGridInGrid("DataGridStyle", "DataGridGridStyle", "ControlBorderStyle", dataGrid);
 
             //A Grid containing a StackPanel for the Editing controls
             Grid editGrid = new Grid();
-            StackPanel editStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winEditPanelStyle", "ControlGridStyle", "ControlBorderStyle", editStkPnl, editGrid);
+            StackPanel editStkPnl = WindowBuildUtils.CreateStackPanelInGrid("winEditPanelStyle", "ControlGridStyle", "ControlBorderStyle", editGrid);
             NameScope.SetNameScope(editStkPnl, new NameScope());
 
             //A Grid containg a StackPanel for the Filter selector
             Grid fltGrid = new Grid();
-            StackPanel fltStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winFilterStack", "ControlGridStyle", "ControlBorderStyle", fltStkPnl, fltGrid);
+            StackPanel fltStkPnl = WindowBuildUtils.CreateStackPanelInGrid("winFilterStack", "ControlGridStyle", "ControlBorderStyle", fltGrid);
 
             //A Grid containing a StackPane for the Buttons
             Grid buttonGrid = new Grid();
-            StackPanel buttonStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winButtonStack", "ControlGridStyle", "ControlBorderStyle", buttonStkPnl, buttonGrid);
+            StackPanel buttonStkPnl = WindowBuildUtils.CreateStackPanelInGrid("winButtonStack", "ControlGridStyle", "ControlBorderStyle", buttonGrid);
 
             //A Grid containg a StackPanel for the Record selectors
             Grid recordSelectorGrid = new Grid();
-            StackPanel recordSelectorStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winPageSelectorStack", "ControlGridStyle", "ControlBorderStyle", recordSelectorStkPnl, recordSelectorGrid);
+            StackPanel recordSelectorStkPnl = WindowBuildUtils.CreateStackPanelInGrid("winPageSelectorStack", "ControlGridStyle", "ControlBorderStyle", recordSelectorGrid);
 
             //A Grid containing a StackPanel for the Message area
-            StackPanel messageStkPnl = new StackPanel();
             Grid messageGrid = new Grid();
-            WindowBuildUtils.StackPanelInGrid("winMessageStack", "ControlGridStyle", "ControlBorderStyle", messageStkPnl, messageGrid);
+            StackPanel messageStkPnl = WindowBuildUtils.CreateStackPanelInGrid("winMessageStack", "ControlGridStyle", "ControlBorderStyle", messageGrid);
 
             //Other Controls
             //Label & Combo for Filter Selector
-            Label labelFlt = new Label
-            {
-                Content = "Select Filter",
-                Style = (Style)FindResource("winLabelStyle")
-            };
-            ComboBox winFlt = new ComboBox
-            {
-                Name = "gridFilter",
-                Style = (Style)FindResource("winComboBoxStyle")
-            };
+            Label labelFlt = WindowBuildUtils.CreateLabel("Select Filter", "winLabelStyle");
+            ComboBox winFlt = WindowBuildUtils.CreateFilterCombo(windowMetaList);
 
             //The buttons
-            Button btnSave = new Button
-            {
-                Name = "btnSave",
-                Content = "Save",
-                Style = (Style)FindResource("winButtonStyle")
-            };
-
-            Button btnNew = new Button
-            {
-                Name = "btnNew",
-                Content = "New",
-                Style = (Style)FindResource("winButtonStyle")
-            };
-
-            Button btnDelete = new Button
-            {
-                Name = "btnDel",
-                Content = "Delete",
-                Style = (Style)FindResource("winButtonStyle")
-            };
-
-            Button btnClear = new Button
-            {
-                Name = "btnClear",
-                Content = "Clear",
-                Style = (Style)FindResource("winButtonStyle")
-            };
-
-            Button btnExit = new Button
-            {
-                Name = "btnExit",
-                Content = "Exit",
-                Style = (Style)FindResource("winButtonStyle")
-            };
+            Button btnSave = WindowBuildUtils.CreateButton("btnSave", "Save", "winButtonStyle");
+            Button btnNew = WindowBuildUtils.CreateButton("btnNew", "New", "winButtonStyle");
+            Button btnDelete = WindowBuildUtils.CreateButton("btnDel", "Delete", "winButtonStyle");
+            Button btnClear = WindowBuildUtils.CreateButton("btnClear", "Clear", "winButtonStyle");
+            Button btnExit = WindowBuildUtils.CreateButton("btnExit", "Exit", "winButtonStyle");
 
             //The record selector controls
-            Button btnPrevPage = new Button
-            {
-                Name = "btnPrevPage",
-                Content = "<",
-                Style = (Style)FindResource("winTinyButtonStyle")
-            };
+            Button btnPrevPage = WindowBuildUtils.CreateButton("btnPrevPage", "<", "winTinyButtonStyle");
+            Button btnNextPage = WindowBuildUtils.CreateButton("btnNextPage", ">", "winTinyButtonStyle");
+            TextBox tbSelectorText = WindowBuildUtils.CreateTextBox("tbSelectorText", string.Empty, "winTinyTextBoxStyle", Visibility.Visible);
+            TextBox tbOffset = WindowBuildUtils.CreateTextBox("tbOffset", "0", "winTinyTextBoxStyle", Visibility = Visibility.Collapsed);
+            TextBox tbFetch = WindowBuildUtils.CreateTextBox("tbFetch", windowMetaList.PageRowCount, "winTinyTextBoxStyle", Visibility.Collapsed);
 
-            Button btnNextPage = new Button
-            {
-                Name = "btnNextPage",
-                Content = ">",
-                Style = (Style)FindResource("winTinyButtonStyle")
-            };
-
-            TextBox tbSelectorText = new TextBox
-            {
-                Style = (Style)FindResource("winTinyTextBoxStyle"),
-                Text = string.Empty
-            };
-
-            TextBox tbOffset = new TextBox
-            {
-                Visibility = Visibility.Collapsed,
-                Text = "0"
-            };
-
-            TextBox tbFetch = new TextBox
-            {
-                Visibility = Visibility.Collapsed,
-                Text = windowMetaList.PageRowCount
-            };
-
-            //WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch);
-
-            //The Message controls
-            TextBox tbWinMode = new TextBox
-            {
-                Name = "tbWinMode",
-                Style = (Style)FindResource("winMessageTextBoxStyle")
-            };
-
-            //Populate Data tables
-            //Window Filter - Gets the list of filters for the window based on the underlying database table
-            NpgsqlCommand getFltRows = new NpgsqlCommand
-            {
-                CommandText = ControlDatabaseSql.TableFilterList()
-            };
-
-            getFltRows.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
-            getFltRows.CommandType = CommandType.Text;
-            getFltRows.Connection = windowMetaList.ControlDb;
-
-            windowMetaList.ControlDb.Open();
-            {
-                NpgsqlDataAdapter fltAdapter = new NpgsqlDataAdapter(getFltRows);
-                DataTable fltDataTable = new DataTable();
-                fltAdapter.Fill(fltDataTable);
-                winFlt.ItemsSource = fltDataTable.DefaultView;
-                winFlt.DisplayMemberPath = fltDataTable.Columns["display_member"].ToString();
-                winFlt.SelectedValuePath = fltDataTable.Columns["value_member"].ToString();
-            }
-            windowMetaList.ControlDb.Close();
-
-
+            //The Message control
+            TextBox tbWinMode = WindowBuildUtils.CreateTextBox("tbWinMode", string.Empty, "winMessageTextBoxStyle", Visibility.Collapsed);
 
             //Create and Add controls to the window editing area Stack panel based on underlying database columns
-            NpgsqlCommand getColList = new NpgsqlCommand
+
+            //try
+            //{
+            DataRow[] row = windowMetaList.ControlValues.Select();
+            for (int i = 0; i < windowMetaList.ControlValues.Rows.Count; i++)
             {
-                CommandText = ControlDatabaseSql.ColumnMetadata()
-            };
+                controlName = row[i]["column_name"].ToString().ToLower();
+                controlLabel = row[i]["column_label"].ToString();
+                controlRowSource = row[i]["row_source"].ToString();
+                controlFilter = row[i]["filter"].ToString();
+                controlOrderBy = row[i]["order_by"].ToString();
+                controlType = row[i]["window_control_type"].ToString();
+                controlEnabled = row[i]["window_control_enabled"].ToString();
+                controlDefaultValue = row[i]["column_default_value"].ToString();
+                controlRequiredValue = row[i]["column_required_value"].ToString();
+                controlDescription = row[i]["column_description"].ToString();
 
-            getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
-            getColList.CommandType = CommandType.Text;
-            getColList.Connection = windowMetaList.ControlDb;
+                controlValues.Add(controlName, null);
+                controlValueDefaults.Add(controlName, controlDefaultValue);
+                controlValueRequired.Add(controlName, controlRequiredValue);
+
+                string toolTip = controlLabel + "\r\n\n" + "Required = " + controlRequiredValue + "\r\n\n" + controlDescription;
 
 
-            windowMetaList.ControlDb.Open();
-            try
-            {
+                if (controlType != "ID")
                 {
-                    NpgsqlDataReader getColListReader = getColList.ExecuteReader();
-                    while (getColListReader.Read())
+                    switch (controlRequiredValue)
                     {
-                        controlName = getColListReader["column_name"].ToString().ToLower();
-                        controlLabel = getColListReader["column_label"].ToString();
-                        controlRowSource = getColListReader["row_source"].ToString();
-                        controlFilter = getColListReader["filter"].ToString();
-                        controlOrderBy = getColListReader["order_by"].ToString();
-                        controlType = getColListReader["window_control_type"].ToString();
-                        controlEnabled = getColListReader["window_control_enabled"].ToString();
-                        controlDefaultValue = getColListReader["column_default_value"].ToString();
+                        case "True":
+                            controlStyle = "winLabelRequiredStyle";
+                            break;
+                        case "False":
+                            controlStyle = "winLabelStyle";
+                            break;
+                    }
 
-                        controlValues.Add(controlName, null);
-                        controlValueDefaults.Add(controlName, controlDefaultValue);
+                    Label lbl = WindowBuildUtils.CreateLabel(controlLabel, controlStyle);
 
-                        if (controlType != "ID")
+                    editStkPnl.Children.Add(lbl);
+                }
+
+                switch (controlType)
+                {
+
+                    case "ID":
+                        TextBox rowKey = WindowBuildUtils.CreateTextBox(controlName, "winTextBoxStyle", controlEnabled, controlType, toolTip);
+                        rowKey.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
-                            Label lbl = new Label
+                            WindowDataOps.WinGetControlValue(rowKey, controlValues);
+                        });
+                        editStkPnl.Children.Add(rowKey);
+                        editStkPnl.RegisterName(rowKey.Name, rowKey);
+                        break;
+
+                    case "TEXT":
+                        switch (controlRequiredValue)
+                        {
+                            case "True":
+                                controlStyle = "winTextBoxRequiredStyle";
+                                break;
+                            case "False":
+                                controlStyle = "winTextBoxStyle";
+                                break;
+                        }
+                        TextBox tb = WindowBuildUtils.CreateTextBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+
+                        tb.TextChanged += new TextChangedEventHandler((s, e) =>
+                        {
+                            WindowDataOps.WinGetControlValue(tb, controlValues);
+                        });
+                        editStkPnl.Children.Add(tb);
+                        editStkPnl.RegisterName(tb.Name, tb);
+                        break;
+
+                    case "TEXTBLOCK":
+                    case "ROWSOURCE":
+                    case "FILTER":
+                    case "ORDERBY":
+                        switch (controlRequiredValue)
+                        {
+                            case "True":
+                                controlStyle = "winTextBlockRequiredStyle";
+                                break;
+                            case "False":
+                                controlStyle = "winTextBlockStyle";
+                                break;
+                        }
+                        TextBox tbk = WindowBuildUtils.CreateTextBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+
+                        tbk.TextChanged += new TextChangedEventHandler((s, e) =>
+                        {
+                            WindowDataOps.WinGetControlValue(tbk, controlValues);
+                        });
+                        editStkPnl.Children.Add(tbk);
+                        editStkPnl.RegisterName(tbk.Name, tbk);
+                        break;
+
+                    case "NUM":
+                        controlStyle = "winNumBoxStyle";
+                        TextBox nb = WindowBuildUtils.CreateTextBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+
+                        nb.PreviewTextInput += ApplicationUtils.NumberValidationTextBox;
+                        nb.TextChanged += new TextChangedEventHandler((s, e) =>
+                        {
+                            WindowDataOps.WinGetControlValue(nb, controlValues);
+                        });
+
+                        editStkPnl.Children.Add(nb);
+                        editStkPnl.RegisterName(nb.Name, nb);
+
+                        break;
+
+                    case "CHK":
+                        controlStyle = "winCheckBoxStyle";
+                        CheckBox chk = WindowBuildUtils.CreateCheckBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+
+                        chk.Checked += new RoutedEventHandler((s, e) =>
+                        {
+                            WindowDataOps.WinGetControlValue(chk, controlValues);
+                        });
+                        chk.Unchecked += new RoutedEventHandler((s, e) =>
+                        {
+                            WindowDataOps.WinGetControlValue(chk, controlValues);
+                        });
+                        chk.Indeterminate += new RoutedEventHandler((s, e) =>
+                        {
+                            WindowDataOps.WinGetControlValue(chk, controlValues);
+                        });
+                        editStkPnl.Children.Add(chk);
+                        editStkPnl.RegisterName(chk.Name, chk);
+                        break;
+
+                    case "DATE":
+                        controlStyle = "winDatePickerStyle";
+                        DatePicker dtp = WindowBuildUtils.CreateDatePicker(controlName, controlStyle, controlEnabled, controlType, toolTip);
+
+                        editStkPnl.Children.Add(dtp);
+                        editStkPnl.RegisterName(dtp.Name, dtp);
+
+                        break;
+
+                    case "COMBO":
+                        controlStyle = "winComboBoxStyle";
+                        ComboBox cb = WindowBuildUtils.CreateComboBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+
+                        cb.DropDownClosed += new EventHandler((s, e) =>
+                        {
+                            if (cb.SelectedValue != null)
                             {
-                                Content = controlLabel,
-                                Style = (Style)FindResource("winLabelStyle")
-                            };
-                            editStkPnl.Children.Add(lbl);
-                        }
-
-                        switch (controlType)
-                        {
-
-                            case "ID":
-                                TextBox rowKey = new TextBox
+                                WindowDataOps.WinGetControlValue(cb, controlValues);
+                                if (windowMetaList.WinMode != "EDIT")
                                 {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winTextBoxStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled)
-                                };
-                                rowKey.TextChanged += new TextChangedEventHandler((s, e) =>
-                                {
-                                    WindowDataOps.WinGetControlValue(rowKey, controlValues);
-                                });
-                                editStkPnl.Children.Add(rowKey);
-                                editStkPnl.RegisterName(rowKey.Name, rowKey);
-                                break;
-
-                            case "TEXT":
-                                TextBox tb = new TextBox
-                                {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winTextBoxStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled)
-                                };
-
-                                tb.TextChanged += new TextChangedEventHandler((s, e) =>
-                                {
-                                    WindowDataOps.WinGetControlValue(tb, controlValues);
-                                });
-                                editStkPnl.Children.Add(tb);
-                                editStkPnl.RegisterName(tb.Name, tb);
-                                break;
-
-                            case "TEXTBLOCK":
-                            case "ROWSOURCE":
-                            case "FILTER":
-                            case "ORDERBY":
-                                TextBox tbk = new TextBox
-                                {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winTextBlockStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled)
-                                };
-
-                                tbk.TextChanged += new TextChangedEventHandler((s, e) =>
-                                {
-                                    WindowDataOps.WinGetControlValue(tbk, controlValues);
-                                });
-                                editStkPnl.Children.Add(tbk);
-                                editStkPnl.RegisterName(tbk.Name, tbk);
-                                break;
-
-                            case "NUM":
-                                TextBox nb = new TextBox
-                                {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winNumBoxStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled)
-                                };
-                                nb.PreviewTextInput += ApplicationUtils.NumberValidationTextBox;
-                                nb.TextChanged += new TextChangedEventHandler((s, e) =>
-                                                               {
-                                                                   WindowDataOps.WinGetControlValue(nb, controlValues);
-                                                               });
-
-                                editStkPnl.Children.Add(nb);
-                                editStkPnl.RegisterName(nb.Name, nb);
-
-                                break;
-
-                            case "CHK":
-                                CheckBox chk = new CheckBox
-                                {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winCheckBoxStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled)
-                                };
-
-                                chk.Checked += new RoutedEventHandler((s, e) =>
-                                {
-                                    WindowDataOps.WinGetControlValue(chk, controlValues);
-                                });
-                                chk.Unchecked += new RoutedEventHandler((s, e) =>
-                                {
-                                    WindowDataOps.WinGetControlValue(chk, controlValues);
-                                });
-                                chk.Indeterminate += new RoutedEventHandler((s, e) =>
-                                {
-                                    WindowDataOps.WinGetControlValue(chk, controlValues);
-                                });
-                                editStkPnl.Children.Add(chk);
-                                editStkPnl.RegisterName(chk.Name, chk);
-                                break;
-
-                            case "DATE":
-                                DatePicker dtp = new DatePicker
-                                {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winDatePickerStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled)
-                                };
-                                editStkPnl.Children.Add(dtp);
-                                editStkPnl.RegisterName(dtp.Name, dtp);
-
-                                break;
-
-                            case "COMBO":
-                                ComboBox cb = new ComboBox
-                                {
-                                    Name = controlName,
-                                    Style = (Style)FindResource("winComboBoxStyle"),
-                                    Tag = controlType,
-                                    IsEnabled = Convert.ToBoolean(controlEnabled),
-                                    SelectedValuePath = "value_member",
-                                    DisplayMemberPath = "display_member"
-                                };
-
-
-                                cb.DropDownClosed += new EventHandler((s, e) =>
-                                {
-                                    if (cb.SelectedValue != null)
-                                    {
-                                        WindowDataOps.WinGetControlValue(cb, controlValues);
-                                        if (windowMetaList.WinMode != "EDIT")
-                                        {
-                                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        cb.Text = displayMember;
-                                    }
-                                });
-
-                                cb.DropDownOpened += new EventHandler((s, e) =>
-                                {
-                                    displayMember = cb.Text;
-                                    DataTable comboDataTable = new DataTable();
-                                    comboDataTable = WindowDataOps.WinPopulateCombo(cb, windowMetaList, cb.Name, controlValues);
-                                    cb.ItemsSource = comboDataTable.DefaultView;
-                                    cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
-                                    cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
-                                });
-                                //Populate Combo
-
-                                if (controlOrderBy == string.Empty)
-                                    controlOrderBy = "\nORDER BY 1";
-                                else
-                                    controlOrderBy = "\nORDER BY " + controlOrderBy;
-
-                                controlRowSource += controlOrderBy;
-                                controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
-
-                                NpgsqlCommand getComboRows = new NpgsqlCommand();
-                                Int32 selectedRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
-                                getComboRows.CommandText = controlRowSource;
-                                getComboRows.CommandType = CommandType.Text;
-                                getComboRows.Connection = windowMetaList.ApplicationDb;
-
-                                windowMetaList.ApplicationDb.Open();
-
-                                {
-                                    NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
-                                    DataTable comboDataTable = new DataTable();
-
-                                    comboAdapter.Fill(comboDataTable);
-                                    cb.ItemsSource = comboDataTable.DefaultView;
-                                    cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
-                                    cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
-                                    editStkPnl.Children.Add(cb);
-                                    editStkPnl.RegisterName(cb.Name, cb);
+                                    DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
                                 }
-                                windowMetaList.ApplicationDb.Close();
+                            }
+                            else
+                            {
+                                cb.Text = displayMember;
+                            }
+                        });
 
-                                break;
+                        cb.DropDownOpened += new EventHandler((s, e) =>
+                        {
+                            displayMember = cb.Text;
+                            DataTable comboDataTable = new DataTable();
+                            comboDataTable = WindowDataOps.WinPopulateCombo(cb, windowMetaList, cb.Name, controlValues);
+                            cb.ItemsSource = comboDataTable.DefaultView;
+                            cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
+                            cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
+                        });
+                        //Populate Combo
+
+                        if (controlOrderBy == string.Empty)
+                            controlOrderBy = "\nORDER BY 1";
+                        else
+                            controlOrderBy = "\nORDER BY " + controlOrderBy;
+
+                        controlRowSource += controlOrderBy;
+                        controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
+
+                        NpgsqlCommand getComboRows = new NpgsqlCommand();
+                        Int32 selectedRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
+                        getComboRows.CommandText = controlRowSource;
+                        getComboRows.CommandType = CommandType.Text;
+                        getComboRows.Connection = windowMetaList.ApplicationDb;
+
+                        windowMetaList.ApplicationDb.Open();
+
+                        {
+                            NpgsqlDataAdapter comboAdapter = new NpgsqlDataAdapter(getComboRows);
+                            DataTable comboDataTable = new DataTable();
+
+                            comboAdapter.Fill(comboDataTable);
+                            cb.ItemsSource = comboDataTable.DefaultView;
+                            cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
+                            cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
+                            editStkPnl.Children.Add(cb);
+                            editStkPnl.RegisterName(cb.Name, cb);
                         }
-                    };
+                        windowMetaList.ApplicationDb.Close();
 
-
+                        break;
                 }
             }
-            catch (Exception ex)
-            {
-                WindowTasks.DisplayError(ex, "Cannot Build Form Control:" + ex.Message, controlRowSource);
-                windowMetaList.ControlDb.Close();
-            }
-            windowMetaList.ControlDb.Close();
 
-            //
 
             //Event Handler's
 
@@ -741,7 +573,7 @@ namespace dbRad
                     case "EDIT":
                         selectedDataGridRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
 
-                        if (DatabaseDataOps.DbUpdateRecord(windowMetaList, windowDataGrid, editStkPnl) == true)
+                        if (DatabaseDataOps.DbUpdateRecord(windowMetaList, windowDataGrid, editStkPnl, controlValueRequired) == true)
                         {
                             WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                             DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
@@ -801,16 +633,6 @@ namespace dbRad
             });
 
             //Build up the layout with UI parts
-
-
-            //Add Rows and Columns to the Grid
-            mainGrid.ColumnDefinitions.Add(col1);
-            mainGrid.ColumnDefinitions.Add(col2);
-
-            mainGrid.RowDefinitions.Add(row1);
-            mainGrid.RowDefinitions.Add(row2);
-            mainGrid.RowDefinitions.Add(row3);
-            mainGrid.RowDefinitions.Add(row4);
 
             //Add the datagrid to the window
             Grid.SetColumn(dataGrid, 1);
@@ -877,7 +699,7 @@ namespace dbRad
             DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, 0, controlValues, tbOffset, tbSelectorText);
             WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
             winNew.Show();
-
+                        
         }
     }
 }

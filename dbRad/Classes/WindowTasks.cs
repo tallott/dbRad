@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Npgsql;
 
@@ -47,11 +46,14 @@ namespace dbRad.Classes
             metaList.SchemaName = getTabReader["schema_name"].ToString();
             metaList.SchemaLabel = getTabReader["schema_label"].ToString();
 
+            controlDb.Close();
             //set the application connection
             NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(metaList.ApplicationName));
             metaList.ApplicationDb = applicationDb;
 
-            controlDb.Close();
+            metaList.ControlValues = WindowBuildUtils.PopulateColumnMetadata(metaList);
+
+
             return metaList;
 
         }
@@ -133,24 +135,6 @@ namespace dbRad.Classes
             windowMetaList.WinMode = winMode;
 
         }
-
-        //public static void ResetWinMain()
-        //{
-
-        //    Window winMain = new dbRad.MainWindow();
-        //    winMain.Show();
-        //    foreach (Window window in App.Current.Windows)
-        //    {
-        //        if (window.Name != "winConfig")
-        //        {
-
-        //            window.Close();
-        //            break;
-
-        //        }
-        //    }
-
-        //}
 
         public static void WinClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters, WindowMetaList windowMetaList, Dictionary<string, string> controlValues)
         //Clears the data edit fields
@@ -280,10 +264,28 @@ namespace dbRad.Classes
                 WindowTasks.DisplayError(ex, "Problem Selecting the DataGrid Row:", null);
             }
         }
+        public static void ShowColumnDetails(WindowMetaList windowMetaList )
+        {
+            Window window = new Window();
+            
+            Grid grid = new Grid();
+            DataGrid dataGrid = new DataGrid();
+
+            dataGrid.ItemsSource = windowMetaList.ControlValues.DefaultView;
+            
+            grid.Children.Add(dataGrid);
+            window.Content = grid;
+            window.Show();
+            
+        }
 
         public static void DisplayError(Exception ex, string msg, string debug)
         {
             MessageBox.Show(msg + "\r\n\nDev Message\r\n" + debug + "\r\n\nException Message" + ex.Message + "\r\n\nStack Trace" + ex.StackTrace, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        public static void DisplayMessage(string msg)
+        {
+            MessageBox.Show(msg, "Message", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

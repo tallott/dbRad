@@ -124,7 +124,9 @@ namespace dbRad.Classes
                            c.order_by,
                            ct.window_control_type,
                            c.window_control_enabled,
-                           c.column_default_value
+                           c.column_default_value,
+                           c.column_required_value,
+                           c.column_description
                     FROM metadata.application_column c
                          INNER JOIN metadata.window_control_type ct on c.window_control_type_id = ct.window_control_type_id
                     WHERE application_table_id = @applicationtableid
@@ -143,7 +145,9 @@ namespace dbRad.Classes
                            c.order_by,
                            ct.window_control_type,
                            c.window_control_enabled,
-                           c.column_default_value
+                           c.column_default_value,
+                           c.column_required_value,
+                           c.column_description
                     FROM metadata.application_column c
                          INNER JOIN metadata.window_control_type ct on c.window_control_type_id = ct.window_control_type_id
                     WHERE application_table_id = @applicationtableid
