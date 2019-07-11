@@ -285,29 +285,25 @@ namespace dbRad
 
             //A Grid containing a StackPanel for the Editing controls
             Grid editGrid = new Grid();
-            StackPanel editStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winEditPanelStyle", "ControlGridStyle", "ControlBorderStyle", editStkPnl, editGrid);
+            StackPanel editStkPnl = WindowBuildUtils.CreateStackPanelInGrid("winEditPanelStyle", "ControlGridStyle", "ControlBorderStyle", editGrid);
             NameScope.SetNameScope(editStkPnl, new NameScope());
 
             //A Grid containg a StackPanel for the Filter selector
             Grid fltGrid = new Grid();
-            StackPanel fltStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winFilterStack", "ControlGridStyle", "ControlBorderStyle", fltStkPnl, fltGrid);
+            StackPanel fltStkPnl =             WindowBuildUtils.CreateStackPanelInGrid("winFilterStack", "ControlGridStyle", "ControlBorderStyle", fltGrid);
 
             //A Grid containing a StackPane for the Buttons
             Grid buttonGrid = new Grid();
-            StackPanel buttonStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winButtonStack", "ControlGridStyle", "ControlBorderStyle", buttonStkPnl, buttonGrid);
+            StackPanel buttonStkPnl =            WindowBuildUtils.CreateStackPanelInGrid("winButtonStack", "ControlGridStyle", "ControlBorderStyle", buttonGrid);
 
             //A Grid containg a StackPanel for the Record selectors
             Grid recordSelectorGrid = new Grid();
-            StackPanel recordSelectorStkPnl = new StackPanel();
-            WindowBuildUtils.StackPanelInGrid("winPageSelectorStack", "ControlGridStyle", "ControlBorderStyle", recordSelectorStkPnl, recordSelectorGrid);
+            StackPanel recordSelectorStkPnl =  WindowBuildUtils.CreateStackPanelInGrid("winPageSelectorStack", "ControlGridStyle", "ControlBorderStyle",  recordSelectorGrid);
 
             //A Grid containing a StackPanel for the Message area
-            StackPanel messageStkPnl = new StackPanel();
+            
             Grid messageGrid = new Grid();
-            WindowBuildUtils.StackPanelInGrid("winMessageStack", "ControlGridStyle", "ControlBorderStyle", messageStkPnl, messageGrid);
+         StackPanel messageStkPnl =   WindowBuildUtils.CreateStackPanelInGrid("winMessageStack", "ControlGridStyle", "ControlBorderStyle",  messageGrid);
 
             //Other Controls
             //Label & Combo for Filter Selector

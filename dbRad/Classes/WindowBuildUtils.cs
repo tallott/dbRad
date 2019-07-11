@@ -8,8 +8,9 @@ namespace dbRad.Classes
 {
     class WindowBuildUtils
     {
-        public static void StackPanelInGrid(String stackStyle, String gridStyle, String borderStyle, StackPanel stackPanel, Grid grid)
+        public static StackPanel CreateStackPanelInGrid(String stackStyle, String gridStyle, String borderStyle, Grid grid)
         {
+            StackPanel stackPanel = new StackPanel();
             stackPanel.Style = (Style)Application.Current.FindResource(stackStyle);
             Border border = new Border
             {
@@ -18,6 +19,7 @@ namespace dbRad.Classes
             grid.Style = (Style)Application.Current.FindResource(gridStyle);
             grid.Children.Add(border);
             grid.Children.Add(stackPanel);
+            return stackPanel;
         }
         public static DataGrid CreateDataGridInGrid(String dataGridStyle, String gridStyle, String borderStyle, Grid grid)
         {
