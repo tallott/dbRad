@@ -45,5 +45,54 @@ namespace dbRad.Classes
 
             return window;
         }
+        public static Grid CreateMainGrid()
+        {
+
+            Grid grid = new Grid();
+
+            //1st Column
+            ColumnDefinition col1 = new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            };
+
+            //2nd Column
+            ColumnDefinition col2 = new ColumnDefinition();
+            col1.Width = GridLength.Auto;
+
+            //1st Row
+            RowDefinition row1 = new RowDefinition
+            {
+                Height = GridLength.Auto
+            };
+
+            //2nd row
+            RowDefinition row2 = new RowDefinition
+            {
+                Height = GridLength.Auto
+            };
+
+            //3rd row
+            RowDefinition row3 = new RowDefinition
+            {
+                Height = GridLength.Auto
+            };
+            //4th row
+            RowDefinition row4 = new RowDefinition
+            {
+                Height = GridLength.Auto
+            };
+
+            //Add Rows and Columns to the Grid
+            grid.ColumnDefinitions.Add(col1);
+            grid.ColumnDefinitions.Add(col2);
+
+            grid.RowDefinitions.Add(row1);
+            grid.RowDefinitions.Add(row2);
+            grid.RowDefinitions.Add(row3);
+            grid.RowDefinitions.Add(row4);
+
+            return grid;
+        }
     }
 }

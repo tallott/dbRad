@@ -276,7 +276,7 @@ namespace dbRad
             });
 
             //Main layout Grid - 2 cols by 3 rows
-            Grid mainGrid = new Grid();
+            Grid mainGrid = WindowBuildUtils.CreateMainGrid();
 
             //1st Column
             ColumnDefinition col1 = new ColumnDefinition
