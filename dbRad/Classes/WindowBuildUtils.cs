@@ -19,8 +19,9 @@ namespace dbRad.Classes
             grid.Children.Add(border);
             grid.Children.Add(stackPanel);
         }
-        public static void DataGridInGrid(String dataGridStyle, String gridStyle, String borderStyle, DataGrid dataGrid, Grid grid)
+        public static DataGrid CreateDataGridInGrid(String dataGridStyle, String gridStyle, String borderStyle, Grid grid)
         {
+            DataGrid dataGrid = new DataGrid();
             dataGrid.Style = (Style)Application.Current.FindResource(dataGridStyle);
             Border border = new Border
             {
@@ -29,6 +30,8 @@ namespace dbRad.Classes
             grid.Style = (Style)Application.Current.FindResource(gridStyle);
             grid.Children.Add(border);
             grid.Children.Add(dataGrid);
+
+            return dataGrid;
         }
         public static Window CreateWindow(WindowMetaList windowMetaList, Int32 applicationTableId)
         {

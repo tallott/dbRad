@@ -281,8 +281,7 @@ namespace dbRad
             //Data Grids
             //Create a Grid containing a DataGrid to display rows from the underlying table
             Grid dataGrid = new Grid();
-            DataGrid windowDataGrid = new DataGrid();
-            WindowBuildUtils.DataGridInGrid("DataGridStyle", "DataGridGridStyle", "ControlBorderStyle", windowDataGrid, dataGrid);
+            DataGrid windowDataGrid = WindowBuildUtils.CreateDataGridInGrid("DataGridStyle", "DataGridGridStyle", "ControlBorderStyle",  dataGrid);
 
             //A Grid containing a StackPanel for the Editing controls
             Grid editGrid = new Grid();
