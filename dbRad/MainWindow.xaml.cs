@@ -318,7 +318,7 @@ namespace dbRad
             Button btnPrevPage = WindowBuildUtils.CreateButton("btnPrevPage", "<", "winTinyButtonStyle");
             Button btnNextPage = WindowBuildUtils.CreateButton("btnNextPage", ">", "winTinyButtonStyle");
             TextBox tbSelectorText = WindowBuildUtils.CreateTextBox("tbSelectorText", string.Empty, "winTinyTextBoxStyle", Visibility.Visible);
-            TextBox tbOffset = WindowBuildUtils.CreateTextBox("tbOffset", "0", "winTinyTextBoxStyle", Visibility = Visibility.Collapsed);
+            TextBox tbOffset = WindowBuildUtils.CreateTextBox("tbOffset", "0", "winTinyTextBoxStyle", Visibility.Collapsed);
             TextBox tbFetch = WindowBuildUtils.CreateTextBox("tbFetch", windowMetaList.PageRowCount, "winTinyTextBoxStyle", Visibility.Collapsed);
 
             //The Message control
