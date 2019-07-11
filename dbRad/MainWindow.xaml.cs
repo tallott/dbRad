@@ -268,12 +268,8 @@ namespace dbRad
             WindowMetaList windowMetaList = WindowTasks.WinMetadataList(applicationTableId);
 
             //Create a new window - we will add various UI elements to the window based on the applicationTableId
-            Window winNew = new Window
-            {
-                Style = (Style)FindResource("winStyle"),
-                Title = "Manage " + windowMetaList.TableLabel + " (" + windowMetaList.TableName + ")",
-                Name = windowMetaList.TableName
-            };
+            Window winNew = WindowBuildUtils.CreateWindow(windowMetaList, applicationTableId);
+
             winNew.Activated += new EventHandler((s, e) =>
             {
                 windowMetaList = WindowTasks.WinMetadataList(applicationTableId);

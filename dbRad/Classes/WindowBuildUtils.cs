@@ -30,5 +30,20 @@ namespace dbRad.Classes
             grid.Children.Add(border);
             grid.Children.Add(dataGrid);
         }
+        public static Window CreateWindow(WindowMetaList windowMetaList, Int32 applicationTableId)
+        {
+            Window window = new Window
+            {
+                Style = (Style)Application.Current.FindResource("winStyle"),
+                Title = "Manage " + windowMetaList.TableLabel + " (" + windowMetaList.TableName + ")",
+                Name = windowMetaList.TableName
+            };
+            window.Activated += new EventHandler((s, e) =>
+            {
+                windowMetaList = WindowTasks.WinMetadataList(applicationTableId);
+            });
+
+            return window;
+        }
     }
 }
