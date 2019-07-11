@@ -278,39 +278,6 @@ namespace dbRad
             //Main layout Grid - 2 cols by 3 rows
             Grid mainGrid = WindowBuildUtils.CreateMainGrid();
 
-            //1st Column
-            ColumnDefinition col1 = new ColumnDefinition
-            {
-                Width = GridLength.Auto
-            };
-
-            //2nd Column
-            ColumnDefinition col2 = new ColumnDefinition();
-            col1.Width = GridLength.Auto;
-
-            //1st Row
-            RowDefinition row1 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-
-            //2nd row
-            RowDefinition row2 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-
-            //3rd row
-            RowDefinition row3 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-            //4th row
-            RowDefinition row4 = new RowDefinition
-            {
-                Height = GridLength.Auto
-            };
-
             //Data Grids
             //Create a Grid containing a DataGrid to display rows from the underlying table
             Grid dataGrid = new Grid();
@@ -796,17 +763,6 @@ namespace dbRad
                 }
             });
 
-            //Build up the layout with UI parts
-
-
-            //Add Rows and Columns to the Grid
-            mainGrid.ColumnDefinitions.Add(col1);
-            mainGrid.ColumnDefinitions.Add(col2);
-
-            mainGrid.RowDefinitions.Add(row1);
-            mainGrid.RowDefinitions.Add(row2);
-            mainGrid.RowDefinitions.Add(row3);
-            mainGrid.RowDefinitions.Add(row4);
 
             //Add the datagrid to the window
             Grid.SetColumn(dataGrid, 1);
