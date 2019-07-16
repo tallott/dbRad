@@ -326,10 +326,10 @@ namespace dbRad
 
             //Create and Add controls to the window editing area Stack panel based on underlying database columns
 
-            //try
-            //{
-            DataRow[] row = windowMetaList.ControlValues.Select();
-            for (int i = 0; i < windowMetaList.ControlValues.Rows.Count; i++)
+
+            //DataRow[] row = windowMetaList.Columns.Select();
+            //for (int i = 0; i < windowMetaList.Columns.Rows.Count; i++)
+            //controlName=windowMetaList.Columns["column_name"].ToString()
             {
                 controlName = row[i]["column_name"].ToString().ToLower();
                 controlLabel = row[i]["column_label"].ToString();

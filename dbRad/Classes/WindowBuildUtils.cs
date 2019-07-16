@@ -221,8 +221,61 @@ namespace dbRad.Classes
             return datePicker;
         }
 
-        public static DataTable PopulateColumnMetadata(WindowMetaList windowMetaList)
+        //public static DataTable PopulateColumnMetadata(WindowMetaList windowMetaList)
+        //{
+        //    NpgsqlCommand getColList = new NpgsqlCommand
+        //    {
+        //        CommandText = ControlDatabaseSql.ColumnMetadata()
+        //    };
+
+        //    getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
+        //    getColList.CommandType = CommandType.Text;
+        //    getColList.Connection = windowMetaList.ControlDb;
+
+        //    windowMetaList.ControlDb.Open();
+
+        //    NpgsqlDataReader getColListReader = getColList.ExecuteReader();
+        //    DataTable getColListSchema = getColListReader.GetSchemaTable();
+        //    DataTable columnMetadata = new DataTable();
+        //    List<ColumMetadata> columns = new List<ColumMetadata>();
+        //    List<DataColumn> listCols = new List<DataColumn>();
+
+        //    if (getColListSchema != null)
+        //    {
+        //        foreach (DataRow drow in getColListSchema.Rows)
+        //        {
+
+        //            string columnName = System.Convert.ToString(drow["ColumnName"]);
+        //            DataColumn column = new DataColumn(columnName, (Type)(drow["DataType"]));
+        //            //column.Unique = (bool)drow["IsUnique"];
+        //            //column.AllowDBNull = (bool)drow["AllowDBNull"];
+        //            //column.AutoIncrement = (bool)drow["IsAutoIncrement"];
+        //            listCols.Add(column);
+        //            columnMetadata.Columns.Add(column);
+
+        //            ColumMetadata column1 = new ColumMetadata { ColumnName = columnName };
+        //            columns.Add(column1);
+        //        }
+        //    }
+
+        //    while (getColListReader.Read())
+        //    {
+        //        DataRow dataRow = columnMetadata.NewRow();
+        //        for (int i = 0; i < listCols.Count; i++)
+        //        {
+        //            dataRow[((DataColumn)listCols[i])] = getColListReader[i];
+        //        }
+        //        columnMetadata.Rows.Add(dataRow);
+        //    }
+        //    windowMetaList.ControlDb.Close();
+
+        //    return columnMetadata;
+        //}
+
+        public static List<ColumMetadata> PopulateColumnMetadata(WindowMetaList windowMetaList)
         {
+            List<ColumMetadata> columns = new List<ColumMetadata>();
+
             NpgsqlCommand getColList = new NpgsqlCommand
             {
                 CommandText = ControlDatabaseSql.ColumnMetadata()
@@ -235,36 +288,27 @@ namespace dbRad.Classes
             windowMetaList.ControlDb.Open();
 
             NpgsqlDataReader getColListReader = getColList.ExecuteReader();
-            DataTable getColListSchema = getColListReader.GetSchemaTable();
-            DataTable columnMetadata = new DataTable();
-            List<DataColumn> listCols = new List<DataColumn>();
 
-            if (getColListSchema != null)
-            {
-                foreach (DataRow drow in getColListSchema.Rows)
-                {
-                    string columnName = System.Convert.ToString(drow["ColumnName"]);
-                    DataColumn column = new DataColumn(columnName, (Type)(drow["DataType"]));
-                    //column.Unique = (bool)drow["IsUnique"];
-                    //column.AllowDBNull = (bool)drow["AllowDBNull"];
-                    //column.AutoIncrement = (bool)drow["IsAutoIncrement"];
-                    listCols.Add(column);
-                    columnMetadata.Columns.Add(column);
-                }
-            }
 
-            while (getColListReader.Read())
+            ColumMetadata column = new ColumMetadata
             {
-                DataRow dataRow = columnMetadata.NewRow();
-                for (int i = 0; i < listCols.Count; i++)
-                {
-                    dataRow[((DataColumn)listCols[i])] = getColListReader[i];
-                }
-                columnMetadata.Rows.Add(dataRow);
-            }
+                ColumnName = getColListReader["column_name"].ToString(),
+                ColumnLabel = getColListReader["column_label"].ToString(),
+                ColumnRowSource = getColListReader["row_source"].ToString(),
+                ColumnFilter = getColListReader["filter"].ToString(),
+                ColumnOrderBy = getColListReader["order_by"].ToString(),
+                ColumnType = getColListReader["window_control_type"].ToString(),
+                ColumnEnabled = getColListReader["window_control_enabled"].ToString(),
+                ColumnDefaultValue = getColListReader["column_default_value"].ToString(),
+                ColumnRequiredValue = getColListReader["column_required_value"].ToString(),
+                ColumnDescription = getColListReader["column_description"].ToString()
+            };
+                       
+            columns.Add(column);
+                       
             windowMetaList.ControlDb.Close();
 
-            return columnMetadata;
+            return columns;
         }
     }
 }

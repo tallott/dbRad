@@ -1,6 +1,7 @@
 ﻿
 using Npgsql;
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace dbRad.Classes
@@ -23,6 +24,7 @@ namespace dbRad.Classes
         private static Int32 _TableId = 0;
         private static NpgsqlConnection _controlDb;
         private static NpgsqlConnection _applicationDb;
+        private List<ColumMetadata> _columns = new List<ColumMetadata>();
 
         public string ApplicationName
         {
@@ -155,17 +157,16 @@ namespace dbRad.Classes
                 _WinMode = value;
             }
         }
-        public DataTable ControlValues
+
+        public List<ColumMetadata> Columns
         {
-            get
-            {
-                return _controlValues;
-            }
+            get { return _columns; }
             set
             {
-                _controlValues = value;
+                _columns = value;
             }
         }
+
         public Int32 GridSelectedIndex
         {
             get

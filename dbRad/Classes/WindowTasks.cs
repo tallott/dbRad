@@ -50,8 +50,9 @@ namespace dbRad.Classes
             //set the application connection
             NpgsqlConnection applicationDb = new NpgsqlConnection(ApplicationEnviroment.ConnectionString(metaList.ApplicationName));
             metaList.ApplicationDb = applicationDb;
+            metaList.Columns = WindowBuildUtils.PopulateColumnMetadata(metaList);
 
-            metaList.ControlValues = WindowBuildUtils.PopulateColumnMetadata(metaList);
+            //metaList.Columns.Add(new ColumMetadata { })
 
 
             return metaList;
