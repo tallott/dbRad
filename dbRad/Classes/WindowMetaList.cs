@@ -19,7 +19,6 @@ namespace dbRad.Classes
         private static string _SchemaLabel = string.Empty;
         private static string _TableKey = string.Empty;
         private static string _WinMode = string.Empty;
-        private static DataTable _controlValues;
         private static Int32 _GridSelectedIndex = -1;
         private static Int32 _TableId = 0;
         private static NpgsqlConnection _controlDb;

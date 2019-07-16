@@ -13,6 +13,7 @@ namespace dbRad.Classes
         string _columnDefaultValue = string.Empty;
         string _columnRequiredValue = string.Empty;
         string _columnDescription = string.Empty;
+        string _columnValue = string.Empty;
 
 
         public string ColumnName
@@ -133,6 +134,17 @@ namespace dbRad.Classes
             set
             {
                 _columnDescription = value;
+            }
+        }
+        public string ColumnValue
+        {
+            get
+            {
+                return _columnValue;
+            }
+            set
+            {
+                _columnValue = value;
             }
         }
     }

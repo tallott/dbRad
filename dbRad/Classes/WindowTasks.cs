@@ -201,45 +201,83 @@ namespace dbRad.Classes
             }
         }
 
-        public static void WinSetControlDefaultValues(StackPanel editStkPnl, Dictionary<string, string> controlValues)
-        //Clears the list of window values used for filters
+        //public static void WinSetControlDefaultValues(StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        ////Clears the list of window values used for filters
+        //{
+        //    foreach (KeyValuePair<string, string> item in controlValues)
+        //    {
+        //        if (item.Value != "")
+        //        {
+        //            //Determine the Type of control
+        //            object obj = editStkPnl.FindName(item.Key);
+
+        //            string ctlType = obj.GetType().Name;
+        //            //Use Type to work out how to process value;
+
+        //            switch (ctlType)
+        //            {
+        //                case "TextBox":
+        //                    TextBox tb = (TextBox)editStkPnl.FindName(item.Key);
+        //                    tb.Text = item.Value;
+        //                    break;
+
+        //                case "ComboBox":
+        //                    ComboBox cb = (ComboBox)editStkPnl.FindName(item.Key);
+        //                    cb.Text = item.Value;
+        //                    break;
+
+        //                case "DatePicker":
+        //                    DatePicker dtp = (DatePicker)editStkPnl.FindName(item.Key);
+        //                    dtp.SelectedDate = Convert.ToDateTime(item.Value);
+        //                    break;
+
+        //                case "CheckBox":
+        //                    CheckBox chk = (CheckBox)editStkPnl.FindName(item.Key);
+        //                    chk.IsChecked = Convert.ToBoolean(item.Value);
+        //                    break;
+        //            }
+        //        };
+        //    }
+        //}
+        public static void WinSetControlDefaultValues(StackPanel editStkPnl, WindowMetaList windowMetaList)
+        //Set control values to defaults
         {
-            foreach (KeyValuePair<string, string> item in controlValues)
+            //MessageBox.Show(WindowTasks.ShowColumnList(windowMetaList));
+            foreach (var item in windowMetaList.Columns)
             {
-                if (item.Value != "")
+                if (item.ColumnName != "")
                 {
-                    //Determine the Type of control
-                    object obj = editStkPnl.FindName(item.Key);
-
-                    string ctlType = obj.GetType().Name;
-                    //Use Type to work out how to process value;
-
-                    switch (ctlType)
+                    
+                    switch (item.ColumnType)
                     {
-                        case "TextBox":
-                            TextBox tb = (TextBox)editStkPnl.FindName(item.Key);
-                            tb.Text = item.Value;
+                        case "TEXT":
+                        case "TEXTBLOCK":
+                        case "ROWSOURCE":
+                        case "FILTER":
+                        case "ORDERBY":
+                        case "NUM":
+                            TextBox tb = (TextBox)editStkPnl.FindName(item.ColumnName);
+                            tb.Text = item.ColumnDefaultValue;
                             break;
 
-                        case "ComboBox":
-                            ComboBox cb = (ComboBox)editStkPnl.FindName(item.Key);
-                            cb.Text = item.Value;
+                        case "COMBO":
+                            ComboBox cb = (ComboBox)editStkPnl.FindName(item.ColumnName);
+                            cb.Text = item.ColumnDefaultValue;
                             break;
 
-                        case "DatePicker":
-                            DatePicker dtp = (DatePicker)editStkPnl.FindName(item.Key);
-                            dtp.SelectedDate = Convert.ToDateTime(item.Value);
+                        case "DATE":
+                            DatePicker dtp = (DatePicker)editStkPnl.FindName(item.ColumnName);
+                            dtp.SelectedDate = Convert.ToDateTime(item.ColumnDefaultValue);
                             break;
 
-                        case "CheckBox":
-                            CheckBox chk = (CheckBox)editStkPnl.FindName(item.Key);
-                            chk.IsChecked = Convert.ToBoolean(item.Value);
+                        case "CHK":
+                            CheckBox chk = (CheckBox)editStkPnl.FindName(item.ColumnName);
+                            chk.IsChecked = Convert.ToBoolean(item.ColumnDefaultValue);
                             break;
                     }
                 };
             }
         }
-
         public static void WinResetRecordSelector(TextBox tbSelectorText, TextBox tbOffset, TextBox tbFetch, WindowMetaList windowMetaList)
         {
             tbSelectorText.Text = "";
@@ -265,21 +303,16 @@ namespace dbRad.Classes
                 WindowTasks.DisplayError(ex, "Problem Selecting the DataGrid Row:", null);
             }
         }
-        public static void ShowColumnDetails(WindowMetaList windowMetaList )
+        public static string ShowColumnList(WindowMetaList windowMetaList)
         {
-            Window window = new Window();
-            
-            Grid grid = new Grid();
-            DataGrid dataGrid = new DataGrid();
+            string columnValues = string.Empty;
 
-            dataGrid.ItemsSource = windowMetaList.ControlValues.DefaultView;
-            
-            grid.Children.Add(dataGrid);
-            window.Content = grid;
-            window.Show();
-            
+            foreach (var item in windowMetaList.Columns)
+            {
+                columnValues += item.ColumnName + "; Type = " + item.ColumnType + "; Default = " + item.ColumnDefaultValue + "\n";
+            }
+            return columnValues;
         }
-
         public static void DisplayError(Exception ex, string msg, string debug)
         {
             MessageBox.Show(msg + "\r\n\nDev Message\r\n" + debug + "\r\n\nException Message" + ex.Message + "\r\n\nStack Trace" + ex.StackTrace, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);

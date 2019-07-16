@@ -243,24 +243,22 @@ namespace dbRad
         private void WinConstruct(Int32 applicationTableId)
         //Builds the window for applicationTableId
         {
-            string controlName = string.Empty;
-            string controlLabel = string.Empty;
-            string controlRowSource = string.Empty;
-            string controlFilter = string.Empty;
-            string controlOrderBy = string.Empty;
-            string controlType = string.Empty;
-            string controlEnabled = string.Empty;
-            string controlDefaultValue = string.Empty;
-            string controlRequiredValue = string.Empty;
-            string controlDescription = string.Empty;
+            //string controlName = string.Empty;
+            //string controlLabel = string.Empty;
+            //string controlRowSource = string.Empty;
+            //string controlFilter = string.Empty;
+            //string controlOrderBy = string.Empty;
+            //string controlType = string.Empty;
+            //string controlEnabled = string.Empty;
+            //string controlDefaultValue = string.Empty;
+            //string controlRequiredValue = string.Empty;
+            //string controlDescription = string.Empty;
             string controlStyle = null;
 
             //These dictionaries are used to pass control values between classes for each instance of a window
             Dictionary<string, string> controlValues = new Dictionary<string, string>();
             Dictionary<string, string> controlValueDefaults = new Dictionary<string, string>();
             Dictionary<string, string> controlValueRequired = new Dictionary<string, string>();
-
-            DataTable Controls = new DataTable();
 
             Int32 selectedDataGridRowIdVal = 0;
             Int32 selectedFilter = 0;
@@ -326,32 +324,18 @@ namespace dbRad
 
             //Create and Add controls to the window editing area Stack panel based on underlying database columns
 
-
-            //DataRow[] row = windowMetaList.Columns.Select();
-            //for (int i = 0; i < windowMetaList.Columns.Rows.Count; i++)
-            //controlName=windowMetaList.Columns["column_name"].ToString()
+            foreach(var columns in windowMetaList.Columns)
             {
-                controlName = row[i]["column_name"].ToString().ToLower();
-                controlLabel = row[i]["column_label"].ToString();
-                controlRowSource = row[i]["row_source"].ToString();
-                controlFilter = row[i]["filter"].ToString();
-                controlOrderBy = row[i]["order_by"].ToString();
-                controlType = row[i]["window_control_type"].ToString();
-                controlEnabled = row[i]["window_control_enabled"].ToString();
-                controlDefaultValue = row[i]["column_default_value"].ToString();
-                controlRequiredValue = row[i]["column_required_value"].ToString();
-                controlDescription = row[i]["column_description"].ToString();
+                controlValues.Add(columns.ColumnName, null);
+                controlValueDefaults.Add(columns.ColumnName, columns.ColumnDefaultValue);
+                controlValueRequired.Add(columns.ColumnName, columns.ColumnRequiredValue);
 
-                controlValues.Add(controlName, null);
-                controlValueDefaults.Add(controlName, controlDefaultValue);
-                controlValueRequired.Add(controlName, controlRequiredValue);
-
-                string toolTip = controlLabel + "\r\n\n" + "Required = " + controlRequiredValue + "\r\n\n" + controlDescription;
+                string toolTip = columns.ColumnLabel + "\r\n\n" + "Required = " + columns.ColumnRequiredValue + "\r\n\n" + columns.ColumnDescription;
 
 
-                if (controlType != "ID")
+                if (columns.ColumnType != "ID")
                 {
-                    switch (controlRequiredValue)
+                    switch (columns.ColumnRequiredValue)
                     {
                         case "True":
                             controlStyle = "winLabelRequiredStyle";
@@ -361,16 +345,16 @@ namespace dbRad
                             break;
                     }
 
-                    Label lbl = WindowBuildUtils.CreateLabel(controlLabel, controlStyle);
+                    Label lbl = WindowBuildUtils.CreateLabel(columns.ColumnLabel, controlStyle);
 
                     editStkPnl.Children.Add(lbl);
                 }
 
-                switch (controlType)
+                switch (columns.ColumnType)
                 {
 
                     case "ID":
-                        TextBox rowKey = WindowBuildUtils.CreateTextBox(controlName, "winTextBoxStyle", controlEnabled, controlType, toolTip);
+                        TextBox rowKey = WindowBuildUtils.CreateTextBox(columns.ColumnName, "winTextBoxStyle", columns.ColumnEnabled, columns.ColumnType, toolTip);
                         rowKey.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
                             WindowDataOps.WinGetControlValue(rowKey, controlValues);
@@ -380,7 +364,7 @@ namespace dbRad
                         break;
 
                     case "TEXT":
-                        switch (controlRequiredValue)
+                        switch (columns.ColumnRequiredValue)
                         {
                             case "True":
                                 controlStyle = "winTextBoxRequiredStyle";
@@ -389,7 +373,7 @@ namespace dbRad
                                 controlStyle = "winTextBoxStyle";
                                 break;
                         }
-                        TextBox tb = WindowBuildUtils.CreateTextBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+                        TextBox tb = WindowBuildUtils.CreateTextBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
 
                         tb.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
@@ -403,7 +387,7 @@ namespace dbRad
                     case "ROWSOURCE":
                     case "FILTER":
                     case "ORDERBY":
-                        switch (controlRequiredValue)
+                        switch (columns.ColumnRequiredValue)
                         {
                             case "True":
                                 controlStyle = "winTextBlockRequiredStyle";
@@ -412,7 +396,7 @@ namespace dbRad
                                 controlStyle = "winTextBlockStyle";
                                 break;
                         }
-                        TextBox tbk = WindowBuildUtils.CreateTextBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+                        TextBox tbk = WindowBuildUtils.CreateTextBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
 
                         tbk.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
@@ -424,7 +408,7 @@ namespace dbRad
 
                     case "NUM":
                         controlStyle = "winNumBoxStyle";
-                        TextBox nb = WindowBuildUtils.CreateTextBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+                        TextBox nb = WindowBuildUtils.CreateTextBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
 
                         nb.PreviewTextInput += ApplicationUtils.NumberValidationTextBox;
                         nb.TextChanged += new TextChangedEventHandler((s, e) =>
@@ -439,7 +423,7 @@ namespace dbRad
 
                     case "CHK":
                         controlStyle = "winCheckBoxStyle";
-                        CheckBox chk = WindowBuildUtils.CreateCheckBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+                        CheckBox chk = WindowBuildUtils.CreateCheckBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
 
                         chk.Checked += new RoutedEventHandler((s, e) =>
                         {
@@ -459,7 +443,7 @@ namespace dbRad
 
                     case "DATE":
                         controlStyle = "winDatePickerStyle";
-                        DatePicker dtp = WindowBuildUtils.CreateDatePicker(controlName, controlStyle, controlEnabled, controlType, toolTip);
+                        DatePicker dtp = WindowBuildUtils.CreateDatePicker(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
 
                         editStkPnl.Children.Add(dtp);
                         editStkPnl.RegisterName(dtp.Name, dtp);
@@ -468,7 +452,7 @@ namespace dbRad
 
                     case "COMBO":
                         controlStyle = "winComboBoxStyle";
-                        ComboBox cb = WindowBuildUtils.CreateComboBox(controlName, controlStyle, controlEnabled, controlType, toolTip);
+                        ComboBox cb = WindowBuildUtils.CreateComboBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
 
                         cb.DropDownClosed += new EventHandler((s, e) =>
                         {
@@ -497,17 +481,17 @@ namespace dbRad
                         });
                         //Populate Combo
 
-                        if (controlOrderBy == string.Empty)
-                            controlOrderBy = "\nORDER BY 1";
+                        if (columns.ColumnOrderBy == string.Empty)
+                            columns.ColumnOrderBy = "\nORDER BY 1";
                         else
-                            controlOrderBy = "\nORDER BY " + controlOrderBy;
+                            columns.ColumnOrderBy = "\nORDER BY " + columns.ColumnOrderBy;
 
-                        controlRowSource += controlOrderBy;
-                        controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
+                        columns.ColumnRowSource += columns.ColumnOrderBy;
+                        columns.ColumnRowSource = WindowDataOps.SubstituteWindowParameters(columns.ColumnRowSource, controlValues);
 
                         NpgsqlCommand getComboRows = new NpgsqlCommand();
                         Int32 selectedRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
-                        getComboRows.CommandText = controlRowSource;
+                        getComboRows.CommandText = columns.ColumnRowSource;
                         getComboRows.CommandType = CommandType.Text;
                         getComboRows.Connection = windowMetaList.ApplicationDb;
 
@@ -528,6 +512,7 @@ namespace dbRad
 
                         break;
                 }
+               
             }
 
 
@@ -551,7 +536,7 @@ namespace dbRad
                 WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch, windowMetaList);
                 DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
-                WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
+                WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
             }
             );
 
@@ -564,7 +549,7 @@ namespace dbRad
                         if (DatabaseDataOps.DbCreateRecord(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText) == true)
                         {
                             WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
-                            WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
+                            WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
                             WindowTasks.WinSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                             DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
 
@@ -588,7 +573,7 @@ namespace dbRad
             {
                 WindowTasks.WinSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
-                WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
+                WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
             });
             btnDelete.Click += new RoutedEventHandler((s, e) =>
             {
@@ -598,7 +583,7 @@ namespace dbRad
 
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
-                WindowTasks.WinSetControlDefaultValues(editStkPnl, controlValueDefaults);
+                WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
             });
             btnExit.Click += new RoutedEventHandler(WindowTasks.WinClose);
             btnClear.Click += new RoutedEventHandler((s, e) =>
