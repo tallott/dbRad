@@ -199,7 +199,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static Boolean DbUpdateRecord(WindowMetaList windowMetaList, DataGrid winDg, StackPanel editStkPnl, Dictionary<string, string> controlValueRequired)
+        public static Boolean DbUpdateRecord(WindowMetaList windowMetaList, DataGrid winDg, StackPanel editStkPnl)
         //updates the database with values in the data edit fields
 
         {

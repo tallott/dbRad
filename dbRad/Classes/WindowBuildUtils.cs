@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 
 namespace dbRad.Classes
 {
@@ -149,6 +151,27 @@ namespace dbRad.Classes
                 ToolTip = textBoxToolTip
             };
 
+            return textBox;
+        }
+        public static TextBox CreateTextBox(string controlName, string controlStyle, string controlEnabled, string controlType, string textBoxToolTip, WindowMetaList windowMetaList )
+        {
+            List<ColumMetadata> columns = new List<ColumMetadata>();
+            columns = windowMetaList.Columns;
+
+            MultiBinding multiBinding = new MultiBinding();
+            //multiBinding.Converter = "";
+
+            TextBox textBox = new TextBox
+            {
+                Name = controlName,
+                Style = (Style)Application.Current.FindResource(controlStyle),
+                IsEnabled = Convert.ToBoolean(controlEnabled),
+                Tag = controlType,
+                ToolTip = textBoxToolTip,
+                DataContext = "windowMetaList.Columns",
+                
+            };
+            textBox.SetBinding(TranslateTransform.YProperty, multiBinding);
             return textBox;
         }
         public static ComboBox CreateComboBox(string controlName, string controlStyle, string controlEnabled, string controlType, string controlToolTip)

@@ -147,5 +147,19 @@ namespace dbRad.Classes
                 _columnValue = value;
             }
         }
+        public static string GetColumValue(WindowMetaList windowMetaList, string columnName)
+        {
+            string columnValue = string.Empty;
+            foreach (var columns in windowMetaList.Columns)
+            {
+                if (columns.ColumnName == columnName)
+                {
+                    columnValue = columns.ColumnValue;
+                    break;
+                }
+
+            }
+            return columnValue;
+        }
     }
 }

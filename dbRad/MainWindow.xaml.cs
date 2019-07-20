@@ -243,22 +243,12 @@ namespace dbRad
         private void WinConstruct(Int32 applicationTableId)
         //Builds the window for applicationTableId
         {
-            //string controlName = string.Empty;
-            //string controlLabel = string.Empty;
-            //string controlRowSource = string.Empty;
-            //string controlFilter = string.Empty;
-            //string controlOrderBy = string.Empty;
-            //string controlType = string.Empty;
-            //string controlEnabled = string.Empty;
-            //string controlDefaultValue = string.Empty;
-            //string controlRequiredValue = string.Empty;
-            //string controlDescription = string.Empty;
             string controlStyle = null;
 
             //These dictionaries are used to pass control values between classes for each instance of a window
             Dictionary<string, string> controlValues = new Dictionary<string, string>();
-            Dictionary<string, string> controlValueDefaults = new Dictionary<string, string>();
-            Dictionary<string, string> controlValueRequired = new Dictionary<string, string>();
+            //Dictionary<string, string> controlValueDefaults = new Dictionary<string, string>();
+            //Dictionary<string, string> controlValueRequired = new Dictionary<string, string>();
 
             Int32 selectedDataGridRowIdVal = 0;
             Int32 selectedFilter = 0;
@@ -323,15 +313,10 @@ namespace dbRad
             TextBox tbWinMode = WindowBuildUtils.CreateTextBox("tbWinMode", string.Empty, "winMessageTextBoxStyle", Visibility.Collapsed);
 
             //Create and Add controls to the window editing area Stack panel based on underlying database columns
-
             foreach(var columns in windowMetaList.Columns)
             {
                 controlValues.Add(columns.ColumnName, null);
-                controlValueDefaults.Add(columns.ColumnName, columns.ColumnDefaultValue);
-                controlValueRequired.Add(columns.ColumnName, columns.ColumnRequiredValue);
-
                 string toolTip = columns.ColumnLabel + "\r\n\n" + "Required = " + columns.ColumnRequiredValue + "\r\n\n" + columns.ColumnDescription;
-
 
                 if (columns.ColumnType != "ID")
                 {
@@ -558,7 +543,7 @@ namespace dbRad
                     case "EDIT":
                         selectedDataGridRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
 
-                        if (DatabaseDataOps.DbUpdateRecord(windowMetaList, windowDataGrid, editStkPnl, controlValueRequired) == true)
+                        if (DatabaseDataOps.DbUpdateRecord(windowMetaList, windowDataGrid, editStkPnl) == true)
                         {
                             WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                             DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
