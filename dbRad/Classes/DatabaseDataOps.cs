@@ -166,7 +166,7 @@ namespace dbRad.Classes
                     }
 
                 }
-                catch (NullReferenceException ex)
+                catch (NullReferenceException)
                 {
                     WindowTasks.DisplayMessage("Try entering a value for: " + ctlName);
 

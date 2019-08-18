@@ -143,21 +143,31 @@ namespace dbRad.Classes
         {
             string filterList = windowMetaList.TableFilter;
             //winNew.FindResource("winFilter").ToString();
-            foreach (FrameworkElement element in editStkPnl.Children)
+            //foreach (FrameworkElement element in editStkPnl.Children)
+            foreach (var item in windowMetaList.Columns)
             {
-                string ctlType = element.GetType().Name;
-                switch (ctlType)
+                //string ctlType = element.GetType().Name;
+                //switch (ctlType)
+                switch (item.ColumnType)
                 {
-                    case "TextBox":
-                        TextBox tb = (TextBox)editStkPnl.FindName(element.Name);
+                    case "TEXT":
+                    case "TEXTBLOCK":
+                    case "ROWSOURCE":
+                    case "FILTER":
+                    case "ORDERBY":
+                    case "NUM":
+                        TextBox tb = (TextBox)editStkPnl.FindName(item.ColumnName);
                         switch (keepFilters)
                         {
                             case true:
-                                if (!filterList.Contains(tb.Name))
+                                if (filterList.Contains(tb.Name))
+                                {
+                                    tb.Text = item.ColumnValue;
+                                }
+                                else
                                 {
                                     tb.Text = null;
                                 }
-
                                 break;
 
                             case false:
@@ -167,17 +177,20 @@ namespace dbRad.Classes
                         }
                         break;
 
-                    case "ComboBox":
-                        ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
+                    case "COMBO":
+                        ComboBox cb = (ComboBox)editStkPnl.FindName(item.ColumnName);
                         switch (keepFilters)
                         {
                             case true:
 
-                                if (!filterList.ToLower().Contains(cb.Name))
+                                if (filterList.ToLower().Contains(cb.Name))
+                                {
+                                    cb.SelectedValue = item.ColumnValue.NullIfWhiteSpace();
+                                }
+                                else
                                 {
                                     cb.SelectedValue = null;
                                 }
-
                                 break;
 
                             case false:
@@ -187,13 +200,13 @@ namespace dbRad.Classes
                         }
                         break;
 
-                    case "DatePicker":
-                        DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
+                    case "DATE":
+                        DatePicker dtp = (DatePicker)editStkPnl.FindName(item.ColumnName);
                         dtp.SelectedDate = null;
                         break;
 
-                    case "CheckBox":
-                        CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
+                    case "CHK":
+                        CheckBox chk = (CheckBox)editStkPnl.FindName(item.ColumnName);
                         chk.IsChecked = null;
                         break;
 
@@ -201,44 +214,6 @@ namespace dbRad.Classes
             }
         }
 
-        //public static void WinSetControlDefaultValues(StackPanel editStkPnl, Dictionary<string, string> controlValues)
-        ////Clears the list of window values used for filters
-        //{
-        //    foreach (KeyValuePair<string, string> item in controlValues)
-        //    {
-        //        if (item.Value != "")
-        //        {
-        //            //Determine the Type of control
-        //            object obj = editStkPnl.FindName(item.Key);
-
-        //            string ctlType = obj.GetType().Name;
-        //            //Use Type to work out how to process value;
-
-        //            switch (ctlType)
-        //            {
-        //                case "TextBox":
-        //                    TextBox tb = (TextBox)editStkPnl.FindName(item.Key);
-        //                    tb.Text = item.Value;
-        //                    break;
-
-        //                case "ComboBox":
-        //                    ComboBox cb = (ComboBox)editStkPnl.FindName(item.Key);
-        //                    cb.Text = item.Value;
-        //                    break;
-
-        //                case "DatePicker":
-        //                    DatePicker dtp = (DatePicker)editStkPnl.FindName(item.Key);
-        //                    dtp.SelectedDate = Convert.ToDateTime(item.Value);
-        //                    break;
-
-        //                case "CheckBox":
-        //                    CheckBox chk = (CheckBox)editStkPnl.FindName(item.Key);
-        //                    chk.IsChecked = Convert.ToBoolean(item.Value);
-        //                    break;
-        //            }
-        //        };
-        //    }
-        //}
         public static void WinSetControlDefaultValues(StackPanel editStkPnl, WindowMetaList windowMetaList)
         //Set control values to defaults
         {
@@ -247,7 +222,7 @@ namespace dbRad.Classes
             {
                 if (item.ColumnName != "")
                 {
-                    
+
                     switch (item.ColumnType)
                     {
                         case "TEXT":
@@ -257,17 +232,17 @@ namespace dbRad.Classes
                         case "ORDERBY":
                         case "NUM":
                             TextBox tb = (TextBox)editStkPnl.FindName(item.ColumnName);
-                            tb.Text = item.ColumnDefaultValue;
+                            tb.Text = tb.Text.NullIfWhiteSpace() ?? item.ColumnDefaultValue;
                             break;
 
                         case "COMBO":
                             ComboBox cb = (ComboBox)editStkPnl.FindName(item.ColumnName);
-                            cb.Text = item.ColumnDefaultValue;
+                            cb.Text = cb.Text.NullIfWhiteSpace() ?? item.ColumnDefaultValue;
                             break;
 
                         case "DATE":
                             DatePicker dtp = (DatePicker)editStkPnl.FindName(item.ColumnName);
-                            dtp.SelectedDate = Convert.ToDateTime(item.ColumnDefaultValue);
+                            dtp.SelectedDate = dtp.SelectedDate ?? Convert.ToDateTime(item.ColumnDefaultValue);
                             break;
 
                         case "CHK":

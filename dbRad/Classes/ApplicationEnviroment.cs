@@ -74,7 +74,7 @@ and select a record to edit or press 'New' to create a new record.");
             }
             catch
             {
-                message = string.Empty;
+                message = "No Message";// string.Empty;
             }
 
             return message;
