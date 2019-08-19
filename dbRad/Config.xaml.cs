@@ -36,23 +36,27 @@ namespace dbRad
             Window window = this;
             window.Name = "winConfig";
             window.Style = FindStyle("winStyle");
-            window.Closed += new EventHandler((s, e) =>
-                {
-                    WindowTasks.ResetWinMain();
-                });
+            //window.Closed += new EventHandler((s, e) =>
+            //    {
+            //        WindowTasks.ResetWinMain();
+            //    });
 
             Grid mainGrid = new Grid();
             TabControl tabControl = new TabControl();
 
-            TabItem logintab = new TabItem();
-            logintab.Header = "User Login";
+            TabItem logintab = new TabItem
+            {
+                Header = "User Login"
+            };
             logintab.GotFocus += new RoutedEventHandler((s, e) =>
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
             });
 
-            TabItem appDbTab = new TabItem();
-            appDbTab.Header = "Application Host";
+            TabItem appDbTab = new TabItem
+            {
+                Header = "Application Host"
+            };
             appDbTab.GotFocus += new RoutedEventHandler((s, e) =>
             {
                 window.SizeToContent = SizeToContent.WidthAndHeight;
@@ -61,65 +65,81 @@ namespace dbRad
             tabControl.Items.Add(logintab);
             tabControl.Items.Add(appDbTab);
 
-            RowDefinition row1 = new RowDefinition();
-            row1.Height = GridLength.Auto;
+            RowDefinition row1 = new RowDefinition
+            {
+                Height = GridLength.Auto
+            };
 
-            RowDefinition row2 = new RowDefinition();
-            row2.Height = GridLength.Auto;
+            RowDefinition row2 = new RowDefinition
+            {
+                Height = GridLength.Auto
+            };
 
             mainGrid.RowDefinitions.Add(row1);
             mainGrid.RowDefinitions.Add(row2);
 
-            StackPanel controlDbStackPanel = new StackPanel();
-            controlDbStackPanel.Style = FindStyle("winEditPanelStyle");
+            StackPanel controlDbStackPanel = new StackPanel
+            {
+                Style = FindStyle("winEditPanelStyle")
+            };
 
             appDbTab.Content = controlDbStackPanel;
 
-            StackPanel settingsStackPanel = new StackPanel();
-            settingsStackPanel.Style = FindStyle("winEditPanelStyle");
+            StackPanel settingsStackPanel = new StackPanel
+            {
+                Style = FindStyle("winEditPanelStyle")
+            };
 
             logintab.Content = settingsStackPanel;
 
-            StackPanel buttonStackPanel = new StackPanel();
-            buttonStackPanel.Style = FindStyle("winButtonStack");
+            StackPanel buttonStackPanel = new StackPanel
+            {
+                Style = FindStyle("winButtonStack")
+            };
 
             Style textBoxStyle = FindStyle("winTextBoxStyle");
-            Style lableStyle = FindStyle("winLabelStyle");
+            Style labelStyle = FindStyle("winLabelStyle");
 
-            Button buttonClose = new Button();
-            buttonClose.Name = "btnClose";
-            buttonClose.Content = "Close";
-            buttonClose.Style = FindStyle("winButtonStyle");
+            Button buttonClose = new Button
+            {
+                Name = "btnClose",
+                Content = "Close",
+                Style = FindStyle("winButtonStyle")
+            };
             buttonClose.Click += new RoutedEventHandler((s, e) =>
             {
-                WindowTasks.winClose(s, e);
+                WindowTasks.WinClose(s, e);
             });
 
-            Button buttonSave = new Button();
-            buttonSave.Name = "btnSave";
-            buttonSave.Content = "Save";
-            buttonSave.Style = FindStyle("winButtonStyle");
+            Button buttonSave = new Button
+            {
+                Name = "btnSave",
+                Content = "Save",
+                Style = FindStyle("winButtonStyle")
+            };
             buttonSave.Click += new RoutedEventHandler((s, e) =>
             {
                 ApplicationFiletasks.WriteToXmlFile<ApplicationConnections>(appDbFilePath, appDb);
                 ApplicationFiletasks.WriteToXmlFile<ApplicationUser>(userFilePath, applicationUser);
-                WindowTasks.winClose(s, e);
+                WindowTasks.WinClose(s, e);
 
             });
 
-            Button buttonCancel = new Button();
-            buttonCancel.Name = "btnCancel";
-            buttonCancel.Content = "Cancel";
-            buttonCancel.Style = FindStyle("winButtonStyle");
+            Button buttonCancel = new Button
+            {
+                Name = "btnCancel",
+                Content = "Cancel",
+                Style = FindStyle("winButtonStyle")
+            };
             buttonCancel.Click += new RoutedEventHandler((s, e) =>
             {
                 if (Config.appDb.HostName == string.Empty || Config.applicationUser.UserName == string.Empty)
                 {
-                    ApplicationUtils.appShutdown(s, e);
+                    ApplicationUtils.AppShutdown(s, e);
                 }
                 else
                 {
-                    WindowTasks.winClose(s, e);
+                    WindowTasks.WinClose(s, e);
                 }
 
             });
@@ -134,23 +154,23 @@ namespace dbRad
             if (File.Exists(appDbFilePath))
             {
                 appDb = ApplicationFiletasks.ReadFromXmlFile<ApplicationConnections>(appDbFilePath);
-                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
+                BuildFormClass(controlDbStackPanel, labelStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
             else
             {
                 ApplicationFiletasks.WriteToXmlFile<ApplicationConnections>(appDbFilePath, appDb);
-                BuildFormClass(controlDbStackPanel, lableStyle, textBoxStyle, appDb, out controlDbStackPanel);
+                BuildFormClass(controlDbStackPanel, labelStyle, textBoxStyle, appDb, out controlDbStackPanel);
             }
 
             if (File.Exists(userFilePath))
             {
                 applicationUser = ApplicationFiletasks.ReadFromXmlFile<ApplicationUser>(userFilePath);
-                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
+                BuildFormClass(settingsStackPanel, labelStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
             else
             {
                 ApplicationFiletasks.WriteToXmlFile<ApplicationUser>(userFilePath, applicationUser);
-                BuildFormClass(settingsStackPanel, lableStyle, textBoxStyle, applicationUser, out settingsStackPanel);
+                BuildFormClass(settingsStackPanel, labelStyle, textBoxStyle, applicationUser, out settingsStackPanel);
             }
 
             Grid.SetRow(buttonStackPanel, 1);
@@ -160,7 +180,7 @@ namespace dbRad
             window.SizeToContent = SizeToContent.WidthAndHeight;
 
         }
-        private static StackPanel BuildFormClass<T>(StackPanel stackPanelIn, Style lableStyle, Style textBoxStyle, T Tclass, out StackPanel stackPanelOut)
+        private static StackPanel BuildFormClass<T>(StackPanel stackPanelIn, Style labelStyle, Style textBoxStyle, T Tclass, out StackPanel stackPanelOut)
         {
             Type tClass = Tclass.GetType();
             PropertyInfo[] tClassProperties = tClass.GetProperties();
@@ -170,17 +190,23 @@ namespace dbRad
                 string propertyName = tClassProperty.Name.ToString();
                 string propertyValue = tClassProperty.GetValue(Tclass, null).ToString();
 
-                Label label = new Label();
-                label.Style = lableStyle;
-                label.Content = propertyName;
+                Label label = new Label
+                {
+                    Style = labelStyle,
+                    Content = propertyName
+                };
 
-                TextBox textBox = new TextBox();
-                textBox.Style = textBoxStyle;
-                textBox.Name = propertyName;
+                TextBox textBox = new TextBox
+                {
+                    Style = textBoxStyle,
+                    Name = propertyName
+                };
 
-                Binding binding = new Binding(propertyName);
-                binding.Mode = BindingMode.TwoWay;
-                binding.Source = Tclass;
+                Binding binding = new Binding(propertyName)
+                {
+                    Mode = BindingMode.TwoWay,
+                    Source = Tclass
+                };
                 textBox.SetBinding(TextBox.TextProperty, binding);
 
                 textBox.TextChanged += new TextChangedEventHandler((s, e) =>

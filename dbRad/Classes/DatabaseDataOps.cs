@@ -1,213 +1,222 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using Npgsql;
 
 namespace dbRad.Classes
 {
     class DatabaseDataOps
     {
-        public static void dbGetDataGridRows(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> columnValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static void DbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
-
             DataTable winDt = new DataTable();
 
             string sqlPart;
-            string sqlParam = applicationTableId;
+            Int32 sqlParam = windowMetaList.TableId;
 
-            //Single row to return user defined DML SQL for DataGrid
-            sqlPart =
-              @"SELECT TOP 1 Dml
-                FROM control.metadata.ApplicationTable
-                WHERE ApplicationTableId = @sqlParam";
+            string sqlTxt = windowMetaList.TableDml;
 
-            string sqlTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
 
             //Append filter where clause to the end of DML
             if (selectedFilter == 0) //Default filter selected
             {
-                sqlPart =
-                  @"SELECT FilterDefinition
-                    FROM control.metadata.ApplicationFilter
-                    WHERE ApplicationTableId = @sqlparam
-                            AND SortOrder = 1";
+                sqlPart = ControlDatabaseSql.TableFilterDefault();
             }
             else //Custom filter selected
             {
-                sqlParam = selectedFilter.ToString();
-                sqlPart =
-                  @"SELECT FilterDefinition
-                    FROM control.metadata.ApplicationFilter
-                    WHERE ApplicationFilterId = @sqlparam";
+                sqlParam = selectedFilter;
+                sqlPart = ControlDatabaseSql.TableFilterSelected();
             }
 
-            string fltTxt = WindowDataOps.winDataGridGetBaseSql(sqlPart, sqlParam);
+            //Set Filter 
+            windowMetaList.TableFilter = WindowDataOps.SubstituteWindowParameters(WindowDataOps.WinDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList), controlValues);
 
-            winNew.Resources.Remove("winFilter");
-            winNew.Resources.Add("winFilter", fltTxt);
-            //Build where clause with replacement values for $COLUMN_NAME$ parameters  
-            fltTxt = WindowDataOps.SubstituteWindowParameters(editStkPnl, fltTxt, columnValues);
-            sqlTxt = sqlTxt + " WHERE " + fltTxt;
+            sqlParam = windowMetaList.TableId;
+
+
+            //Set order by
+            string sqlOrderBy = windowMetaList.TableOrderBy;
+
+            //Build where clause with replacement values for |COLUMN_NAME| parameters  
+            sqlTxt = sqlTxt + " WHERE " + windowMetaList.TableFilter;
+
+            //Save SQl for counting rows
             string sqlCountText = sqlTxt;
-            sqlTxt = sqlTxt + " ORDER BY 1 OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + tbFetch.Text + " ROWS ONLY";
+
+            //Add Order by
+            sqlTxt = sqlTxt + " ORDER BY " + sqlOrderBy + " OFFSET " + tbOffset.Text + " ROWS FETCH NEXT " + windowMetaList.PageRowCount + " ROWS ONLY";
 
             try
             {
+                windowMetaList.ControlDb.Open();
+                windowMetaList.ApplicationDb.Open();
                 {
-                    appDbCon.Open();
-                    {
-                        //Run the SQL cmd to return SQL that fills DataGrid
-                        SqlCommand execTabSql = appDbCon.CreateCommand();
-                        execTabSql.CommandText = sqlTxt;
+                    //Run the SQL cmd to return SQL that fills DataGrid
+                    NpgsqlCommand execTabSql = windowMetaList.ApplicationDb.CreateCommand();
+                    execTabSql.CommandText = sqlTxt;
 
-                        //Create an adapter and fill the grid using sql and adapater
-                        SqlDataAdapter winDa = new SqlDataAdapter(execTabSql);
-                        winDa.Fill(winDt);
-                        winDg.ItemsSource = winDt.DefaultView;
+                    //Create an adapter and fill the grid using sql and adapater
+                    NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(execTabSql);
+                    winDa.Fill(winDt);
+                    winDg.ItemsSource = winDt.DefaultView;
 
-                        //set the page counter
-                        string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-                        string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-                        int rowCount = 0;
+                    //set the page counter
+                    Int32 rowCount = 0;
 
-                        int chrStart = sqlCountText.IndexOf("SELECT") + 6;
-                        int chrEnd = sqlCountText.IndexOf("FROM");
+                    Int32 chrStart = sqlCountText.IndexOf("SELECT") + 6;
+                    Int32 chrEnd = sqlCountText.IndexOf("FROM");
 
-                        sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
-                        SqlCommand countRows = new SqlCommand(sqlTxt, appDbCon);
-                        rowCount = (int)countRows.ExecuteScalar();
-                        int pageSize = Convert.ToInt32(tbFetch.Text);
-                        int offSet = Convert.ToInt32(tbOffset.Text);
+                    sqlTxt = sqlCountText.Substring(0, chrStart) + "  COUNT(*) " + sqlCountText.Substring(chrEnd);
+                    NpgsqlCommand countRows = new NpgsqlCommand(sqlTxt, windowMetaList.ApplicationDb);
+                    rowCount = Convert.ToInt32(countRows.ExecuteScalar());
+                    Int32 pageSize = Convert.ToInt32(windowMetaList.PageRowCount);
+                    Int32 offSet = Convert.ToInt32(tbOffset.Text);
 
-                        string pageCount = Convert.ToString((rowCount / pageSize) + 1);
-                        string pageNumber = Convert.ToString((offSet / pageSize) + 1);
+                    string pageCount = Convert.ToString((rowCount / pageSize) + 1);
+                    string pageNumber = Convert.ToString((offSet / pageSize) + 1);
 
+                    tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
 
-                        tbSelectorText.Text = "Page " + pageNumber + " of " + pageCount;
-                        //Define the grid columns
-
-                        appDbCon.Close();
-                    }
+                    windowMetaList.ControlDb.Close();
+                    windowMetaList.ApplicationDb.Close();
                 }
             }
             catch (Exception ex)
             {
-                WindowTasks.DisplayError(ex, "ERROR in Filter SQL:" + ex.Message, sqlTxt);
-                appDbCon.Close();
+                WindowTasks.DisplayError(ex, "ERROR in DataGrid SQL:" + ex.Message, sqlTxt);
+                windowMetaList.ControlDb.Close();
+                windowMetaList.ApplicationDb.Close();
             }
         }
 
-        public static void dbCreateRecord(Window winNew, String applicationTableId, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static Boolean DbCreateRecord(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
         //Creates a new record in the db
         {
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
-
             List<string> columns = new List<string>();
             List<string> columnUpdates = new List<string>();
 
             string sql = string.Empty;
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
+            string ctlName = string.Empty;
+            string ctlType = string.Empty;
+            FrameworkElement e;
             try
             {
-                foreach (FrameworkElement element in editStkPnl.Children)
+                try
                 {
-                    if (element.Name != tableKey)
+                    foreach (FrameworkElement element in editStkPnl.Children)
                     {
+                        e = element;
+                        ctlType = e.GetType().Name;
+                        ctlName = e.Name;
 
-                        string ctlType = element.GetType().Name;
-                        // MessageBox.Show(element.Name);
-                        switch (ctlType)
+                        if (ctlName != windowMetaList.TableKey & ctlType != "Label" & e.IsEnabled == true)
                         {
-                            case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add("'" + tb.Text + "'");
-                                break;
-                            case "ComboBox":
+                            switch (ctlType)
+                            {
+                                case "TextBox":
+                                    TextBox tb = (TextBox)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    if (tb.Tag.ToString() != "NUM")
+                                    {
+                                        columnUpdates.Add("'" + tb.Text.Replace("'", "''") + "'");
+                                    }
+                                    else
+                                    {
 
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add(cb.SelectedValue.ToString());
-                                break;
-                            case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                if (dtp.SelectedDate != null)
-                                {
-                                    columnUpdates.Add("'" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "'");
-                                }
-                                else
-                                {
-                                    columnUpdates.Add("NULL");
-                                }
+                                        if (tb.Text == "")
+                                        {
+                                            tb.Text = "0";
+                                        }
+                                        columnUpdates.Add(tb.Text);
+                                    }
+                                    break;
 
-                                break;
-                            case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(element.Name);
-                                columns.Add(element.Name);
-                                columnUpdates.Add(((bool)chk.IsChecked ? 1 : 0).ToString());
-                                break;
-                        };
+                                case "ComboBox":
+                                    ComboBox cb = (ComboBox)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    columnUpdates.Add(cb.SelectedValue.ToString());
+                                    break;
+
+                                case "DatePicker":
+                                    DatePicker dtp = (DatePicker)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    if (dtp.SelectedDate != null)
+                                    {
+                                        columnUpdates.Add("'" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "'");
+                                    }
+                                    else
+                                    {
+                                        columnUpdates.Add("NULL");
+                                    }
+                                    break;
+
+                                case "CheckBox":
+                                    CheckBox chk = (CheckBox)editStkPnl.FindName(ctlName);
+                                    columns.Add(ctlName);
+                                    columnUpdates.Add("CAST(" + ((bool)chk.IsChecked ? 1 : 0).ToString() + " AS boolean)");
+                                    break;
+                            }
+                        }
 
                     }
+
                 }
+                catch (NullReferenceException)
+                {
+                    WindowTasks.DisplayMessage("Try entering a value for: " + ctlName);
+
+                    return false;
+                }
+
+
                 string csvColumns = "(" + String.Join(",", columns) + ")";
                 string csvColumnUpdates = " VALUES(" + String.Join(",", columnUpdates) + ")";
-                sql = "INSERT INTO [" + applicationName + "].[" + schemaName + "].[" + tableName + "]" + csvColumns + csvColumnUpdates;
+                sql = "INSERT INTO " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " " + csvColumns + csvColumnUpdates;
 
-                SqlCommand dbCreateRecordSql = new SqlCommand();
-                dbCreateRecordSql.CommandText = sql;
-                dbCreateRecordSql.CommandType = CommandType.Text;
-                dbCreateRecordSql.Connection = appDbCon;
+                NpgsqlCommand dbCreateRecordSql = new NpgsqlCommand
+                {
+                    CommandText = sql,
+                    CommandType = CommandType.Text,
+                    Connection = windowMetaList.ApplicationDb
+                };
 
-                appDbCon.Open();
+                windowMetaList.ApplicationDb.Open();
                 dbCreateRecordSql.ExecuteNonQuery();
-                appDbCon.Close();
+                windowMetaList.ApplicationDb.Close();
 
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
+                return true;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Insert Record:" + ex.Message, sql);
-                appDbCon.Close();
+                windowMetaList.ApplicationDb.Close();
+                return false;
             }
         }
 
-        public static void dbUpdateRecord(Window winNew, String applicationTableId, DataGrid winDg, StackPanel editStkPnl, StackPanel fltStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
+        public static Boolean DbUpdateRecord(WindowMetaList windowMetaList, DataGrid winDg, StackPanel editStkPnl)
         //updates the database with values in the data edit fields
-        {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
 
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+        {
 
             string sql = string.Empty;
 
             try
             {
-                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
+                Int32 selectedRowIdVal = WindowTasks.DataGridGetId(winDg);
 
-                DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
+                DataTable winSelectedRowDataTable = WindowDataOps.DbGetDataRow(windowMetaList, selectedRowIdVal, editStkPnl);
 
                 Boolean isDirty = false;
 
                 foreach (DataRow row in winSelectedRowDataTable.Rows)
                 {
-                    sql = "UPDATE [" + applicationName + "].[" + schemaName + "].[" + tableName + "] SET ";
+                    sql = "UPDATE " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " SET ";
                     foreach (DataColumn col in winSelectedRowDataTable.Columns)
                     {
 
@@ -215,7 +224,6 @@ namespace dbRad.Classes
 
                         //Determine the Type of control
                         object obj = editStkPnl.FindName(col.ColumnName);
-
                         string ctlName = obj.GetType().Name;
                         //Use Type to work out how to process value;
                         switch (ctlName)
@@ -225,18 +233,33 @@ namespace dbRad.Classes
 
                                 if (tb.Text.ToString() != row[col].ToString())
                                 {
-                                    sql = sql + col.ColumnName + " = '" + tb.Text + "', ";
+                                    if (tb.Tag.ToString() != "NUM")
+                                    {
+                                        sql = sql + col.ColumnName + " = '" + tb.Text.Replace("'", "''") + "', ";
+
+                                    }
+                                    else
+                                    {
+                                        if (row[col].ToString() == "")
+                                        {
+                                            tb.Text = "0";
+                                        }
+                                        sql = sql + col.ColumnName + " = " + tb.Text + ", ";
+                                    }
                                     isDirty = true;
-                                };
+                                }
                                 break;
 
                             case "ComboBox":
 
                                 ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
-                                if (cb.SelectedValue.ToString() != row[col].ToString())
+                                if (cb.SelectedValue != null)
                                 {
-                                    sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
-                                    isDirty = true;
+                                    if (cb.SelectedValue.ToString() != row[col].ToString())
+                                    {
+                                        sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
+                                        isDirty = true;
+                                    }
                                 }
                                 break;
 
@@ -263,7 +286,7 @@ namespace dbRad.Classes
                                 CheckBox chk = (CheckBox)editStkPnl.FindName(col.ColumnName);
                                 if (Convert.ToBoolean(chk.IsChecked) != Convert.ToBoolean(row[col]))
                                 {
-                                    sql = sql + col.ColumnName + " = '" + Convert.ToBoolean(chk.IsChecked) + "', ";
+                                    sql = sql + col.ColumnName + " = " + Convert.ToBoolean(chk.IsChecked) + ", ";
                                     isDirty = true;
                                 }
                                     ;
@@ -274,78 +297,66 @@ namespace dbRad.Classes
                     if (isDirty)
                     { //Update the selected record in database
 
-                        sql = sql.Trim(',', ' ') + " WHERE " + tableKey + " = @Id";
+                        sql = sql.Trim(',', ' ') + " WHERE " + windowMetaList.TableKey + " = @Id";
 
-                        SqlCommand listItemSaveSql = new SqlCommand();
-                        listItemSaveSql.CommandText = sql;
+                        NpgsqlCommand listItemSaveSql = new NpgsqlCommand
+                        {
+                            CommandText = sql,
+                            CommandType = CommandType.Text,
+                            Connection = windowMetaList.ApplicationDb
+                        };
+
                         listItemSaveSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
-                        listItemSaveSql.CommandType = CommandType.Text;
-                        listItemSaveSql.Connection = appDbCon;
 
-                        appDbCon.Open();
+                        windowMetaList.ApplicationDb.Open();
                         listItemSaveSql.ExecuteNonQuery();
-                        appDbCon.Close();
-
-                        dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
-
-                        TextBox tabIdCol = (TextBox)editStkPnl.FindName(tableKey);
-                        selectedRowIdVal = tabIdCol.Text;
-
-                        WindowTasks.winDataGridSelectRow(selectedRowIdVal, winDg);
-
+                        windowMetaList.ApplicationDb.Close();
                     };
 
 
                 }
-
+                return true;
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Save Record:" + ex.Message, sql);
-                appDbCon.Close();
+                windowMetaList.ApplicationDb.Close();
+                return false;
             };
         }
 
-        public static void dbDeleteRecord(Window winNew, String applicationTableId, StackPanel fltStkPnl, DataGrid winDg, StackPanel editStkPnl, int seletedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbFetch, TextBox tbSelectorText)
-        //deletes the selected row from the database
-        {
-            SqlConnection appDbCon = new SqlConnection(Config.appDb.ToString());
+        public static void DbDeleteRecord(WindowMetaList windowMetaList, DataGrid winDg)
 
-            string applicationName = WindowTasks.winMetadataList(applicationTableId).ApplicationName;
-            string tableKey = WindowTasks.winMetadataList(applicationTableId).TableKey;
-            string tableName = WindowTasks.winMetadataList(applicationTableId).TableName;
-            string tableLabel = WindowTasks.winMetadataList(applicationTableId).TableLabel;
-            string schemaName = WindowTasks.winMetadataList(applicationTableId).SchemaName;
-            string schemaLabel = WindowTasks.winMetadataList(applicationTableId).SchemaLabel;
+        //deletes the selected row from the database
+
+        {
 
             string sql = string.Empty;
             try
             {
-                string selectedRowIdVal = WindowTasks.dataGridGetId(winDg);
-                DataTable winSelectedRowDataTable = WindowDataOps.dbGetDataRow(applicationTableId, selectedRowIdVal, editStkPnl);
+                Int32 selectedRowIdVal = WindowTasks.DataGridGetId(winDg);
+
                 //Delete the selected row from db
+                sql = "DELETE FROM " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " WHERE " + windowMetaList.TableKey + " = @Id";
 
-                sql = "DELETE FROM [" + applicationName + "].[" + schemaName + "].[" + tableName + "] WHERE " + tableKey + " = @Id";
+                NpgsqlCommand delRowSql = new NpgsqlCommand
+                {
+                    CommandText = sql,
+                    CommandType = CommandType.Text,
+                    Connection = windowMetaList.ApplicationDb
+                };
 
-                SqlCommand delRowSql = new SqlCommand();
-                delRowSql.CommandText = sql;
                 delRowSql.Parameters.AddWithValue("@Id", selectedRowIdVal);
-                delRowSql.CommandType = CommandType.Text;
-                delRowSql.Connection = appDbCon;
 
-                appDbCon.Open();
+                windowMetaList.ApplicationDb.Open();
                 delRowSql.ExecuteNonQuery();
-                appDbCon.Close();
-
-                WindowTasks.winClearDataFields(winNew, editStkPnl, fltStkPnl, false);
-
-                dbGetDataGridRows(winNew, applicationTableId, editStkPnl, fltStkPnl, winDg, seletedFilter, controlValues, tbOffset, tbFetch, tbSelectorText);
+                windowMetaList.ApplicationDb.Close();
 
             }
             catch (Exception ex)
             {
                 WindowTasks.DisplayError(ex, "Cannot Delete Record:" + ex.Message, sql);
-                appDbCon.Close();
+                windowMetaList.ApplicationDb.Close();
             };
         }
 

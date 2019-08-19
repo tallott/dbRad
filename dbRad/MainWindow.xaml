@@ -8,8 +8,8 @@
         Title="MainWindow"
         Name="winMain" MinWidth="600" MinHeight="250" Height="248" Width="600">
 
-    <Grid>
-        <Menu x:Name="menu" HorizontalAlignment="Left" Height="27" VerticalAlignment="Top" Width="1367"/>
+    <Grid Name="menuGrid">
+        <!--<Menu x:Name="menu" HorizontalAlignment="Left" Height="27" VerticalAlignment="Top" Width="1367"/>-->
     </Grid>
 
 </Window>
