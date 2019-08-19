@@ -10,16 +10,16 @@ namespace dbRad.Classes
 {
     class WindowDataOps
     {
-        public static string SubstituteWindowParameters(String targetTxt, Dictionary<string, string> controlValues)
+        public static string SubstituteWindowParameters(String targetTxt, WindowMetaList windowMetaList)
         //Repalces parameter values with control values from editStkPnl
         {
-            string x = controlValues.Count.ToString();
-            foreach (string key in controlValues.Keys)
+            //string x = controlValues.Count.ToString();
+            foreach (var item in windowMetaList.Columns)
             {
-                string s = ("~" + key + "~").ToLower();
+                string s = ("~" + item.ColumnName + "~").ToLower();
 
                 string r;
-                string columnValue = controlValues[key];
+                string columnValue = item.ColumnName;
 
                 //Value supplied or not
                 if ((columnValue ?? "") != "") //supplied
@@ -42,105 +42,132 @@ namespace dbRad.Classes
             return targetTxt;
         }
 
-        public static void WinLoadDataRow(StackPanel editStkPnl, DataTable winSelectedRowDataTable, Dictionary<string, string> controlValues)
-        //Loads the data editing UI with the values from the row in winSelectedRowDataTable 
+        //public static void WinLoadDataRow(StackPanel editStkPnl, DataTable winSelectedRowDataTable)
+        ////Loads the data editing UI with the values from the row in winSelectedRowDataTable 
+        //{
+        //    //Loop the Row (Filtered by @Id) and columns of the underlying dataset
+        //    string rowCol = null;
+        //    string columnName = null;
+        //    try
+        //    {
+
+        //        foreach (DataRow row in winSelectedRowDataTable.Rows)
+        //        {
+
+        //            foreach (DataColumn col in winSelectedRowDataTable.Columns)
+        //            {
+        //                //Set the value of the control col.Name in the window to the value returned by row[col]
+        //                rowCol = row[col].ToString();
+        //                columnName = col.ColumnName;
+
+        //                //Determine the Type of control
+        //                object obj = editStkPnl.FindName(columnName);
+
+        //                string ctlType = obj.GetType().Name;
+        //                //Use Type to work out how to process value;
+
+        //                switch (ctlType)
+        //                {
+        //                    case "TextBox":
+        //                        TextBox tb = (TextBox)editStkPnl.FindName(columnName);
+        //                        tb.Text = rowCol;
+        //                        break;
+
+        //                    case "ComboBox":
+        //                        ComboBox cb = (ComboBox)editStkPnl.FindName(columnName);
+        //                        if (rowCol != "")
+        //                        {
+        //                            cb.SelectedValue = rowCol;
+        //                            //We set this here because there is no change event we can trigger on a combo box
+        //                            WinGetControlValue(cb, controlValues);
+        //                        }
+        //                        else if (rowCol == "")
+        //                        {
+        //                            cb.SelectedValue = null;
+        //                        }
+        //                        break;
+
+        //                    case "DatePicker":
+        //                        DatePicker dtp = (DatePicker)editStkPnl.FindName(columnName);
+        //                        if (rowCol != "")
+        //                        {
+        //                            dtp.SelectedDate = Convert.ToDateTime(row[col]);
+        //                        }
+        //                        else if (rowCol == "")
+        //                        {
+        //                            dtp.SelectedDate = null;
+        //                        }
+        //                        break;
+
+        //                    case "CheckBox":
+        //                        CheckBox chk = (CheckBox)editStkPnl.FindName(columnName);
+        //                        chk.IsChecked = Convert.ToBoolean(row[col]);
+        //                        break;
+        //                };
+        //            }
+        //        }
+        //    }
+
+        //    catch (Exception ex)
+        //    {
+        //        WindowTasks.DisplayError(ex, "Problem Loading the data row:", columnName + ":" + rowCol);
+        //    }
+
+
+        //}
+
+        public static void WinGetControlValue(ComboBox cb, WindowMetaList windowMetaList)
+
         {
-            //Loop the Row (Filtered by @Id) and columns of the underlying dataset
-            string rowCol = null;
-            string columnName = null;
-            try
+            foreach (var item in windowMetaList.Columns)
             {
-
-                foreach (DataRow row in winSelectedRowDataTable.Rows)
+                if (item.ColumnName == cb.Name)
                 {
-
-                    foreach (DataColumn col in winSelectedRowDataTable.Columns)
-                    {
-                        //Set the value of the control col.Name in the window to the value returned by row[col]
-                        rowCol = row[col].ToString();
-                        columnName = col.ColumnName;
-
-                        //Determine the Type of control
-                        object obj = editStkPnl.FindName(columnName);
-
-                        string ctlType = obj.GetType().Name;
-                        //Use Type to work out how to process value;
-
-                        switch (ctlType)
-                        {
-                            case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(columnName);
-                                tb.Text = rowCol;
-                                break;
-
-                            case "ComboBox":
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(columnName);
-                                if (rowCol != "")
-                                {
-                                    cb.SelectedValue = rowCol;
-                                    //We set this here because there is no change event we can trigger on a combo box
-                                    WinGetControlValue(cb, controlValues);
-                                }
-                                else if (rowCol == "")
-                                {
-                                    cb.SelectedValue = null;
-                                }
-                                break;
-
-                            case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(columnName);
-                                if (rowCol != "")
-                                {
-                                    dtp.SelectedDate = Convert.ToDateTime(row[col]);
-                                }
-                                else if (rowCol == "")
-                                {
-                                    dtp.SelectedDate = null;
-                                }
-                                break;
-
-                            case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(columnName);
-                                chk.IsChecked = Convert.ToBoolean(row[col]);
-                                break;
-                        };
-                    }
+                    item.ColumnUiValue = cb.SelectedValue.ToString();
+                    break;
                 }
             }
+        }
 
-            catch (Exception ex)
+        public static void WinGetControlValue(TextBox control, WindowMetaList windowMetaList)
+
+        {
+            foreach (var item in windowMetaList.Columns)
             {
-                WindowTasks.DisplayError(ex, "Problem Loading the data row:", columnName + ":" + rowCol);
+                if (item.ColumnName == control.Name)
+                {
+                    item.ColumnUiValue = "'" + control.Text + "'";
+                    break;
+                }
             }
-
-
         }
-
-        public static void WinGetControlValue(ComboBox cb, Dictionary<string, string> controlValues)
+        public static void WinGetControlValue(CheckBox control, WindowMetaList windowMetaList)
 
         {
-            controlValues[cb.Name] = cb.SelectedValue.ToString();
+            foreach (var item in windowMetaList.Columns)
+            {
+                if (item.ColumnName == control.Name)
+                {
+                    item.ColumnUiValue = control.IsChecked.ToString();
+                    break;
+                }
+            }
         }
 
-        public static void WinGetControlValue(TextBox tb, Dictionary<string, string> controlValues)
+        public static void WinGetControlValue(DatePicker control, WindowMetaList windowMetaList)
 
         {
-            controlValues[tb.Name] = "'" + tb.Text + "'";
+            foreach (var item in windowMetaList.Columns)
+            {
+                if (item.ColumnName == control.Name)
+                {
+                    item.ColumnUiValue = "'" + control.Text + "'";
+                    break;
+                }
+            }
         }
 
-        public static void WinGetControlValue(CheckBox cb, Dictionary<string, string> controlValues)
-
-        {
-            controlValues[cb.Name] = cb.IsChecked.ToString();
-        }
-
-        public static void WinGetControlValue(DatePicker dtp, Dictionary<string, string> controlValues)
-
-        {
-            controlValues[dtp.Name] = "'" + dtp.Text + "'";
-        }
-
-        public static void WinDataGridClicked(WindowMetaList windowMetaList, DataGrid winDg, Int32 selectedRowIdVal, StackPanel editStkPnl, Dictionary<string, string> controlValues)
+        public static void WinDataGridClicked(WindowMetaList windowMetaList, DataGrid winDg, Int32 selectedRowIdVal, StackPanel editStkPnl)
         //gets the id of the row selected and loads the edit fileds with the database values
         {
             if (selectedRowIdVal == 0)
@@ -153,8 +180,9 @@ namespace dbRad.Classes
 
                 if (selectedRowIdVal != 0)
                 {
-                    DataTable winSelectedRowDataTable = DbGetDataRow(windowMetaList, selectedRowIdVal, editStkPnl);
-                    WindowDataOps.WinLoadDataRow(editStkPnl, winSelectedRowDataTable, controlValues);
+                    DbGetDataRow(windowMetaList, selectedRowIdVal);
+                    WindowTasks.WinSetControlValues(editStkPnl, windowMetaList, "Load");
+                    //WindowDataOps.WinLoadDataRow(editStkPnl,  controlValues);
                     winDg.UpdateLayout();
                 }
             }
@@ -164,7 +192,7 @@ namespace dbRad.Classes
             }
         }
 
-        public static DataTable DbGetDataRow(WindowMetaList windowMetaList, Int32 id, StackPanel editStkPnl)
+        public static void DbGetDataRow(WindowMetaList windowMetaList, Int32 id)
         //Loads a single row from the database into a table for the record for the selected ID
         {
 
@@ -183,8 +211,24 @@ namespace dbRad.Classes
             windowMetaList.ApplicationDb.Open();
             try
             {
-                NpgsqlDataAdapter winDa = new NpgsqlDataAdapter(winSelectedRowSql);
-                winDa.Fill(winSelectedRowDataTable);
+                NpgsqlDataReader reader = winSelectedRowSql.ExecuteReader();
+                DataTable schemaTable = reader.GetSchemaTable();
+
+                foreach (DataRow row in schemaTable.Rows)
+                {
+                    foreach (DataColumn column in schemaTable.Columns)
+                    {
+                        foreach (var item in windowMetaList.Columns)
+                        {
+                            if (column.ColumnName == item.ColumnName)
+                            {
+                                item.ColumnDbValue = row[column].ToString();
+                                break;
+                            }
+                        }
+
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -193,7 +237,7 @@ namespace dbRad.Classes
             }
 
             windowMetaList.ApplicationDb.Close();
-            return winSelectedRowDataTable;
+            //return winSelectedRowDataTable;
 
         }
 
@@ -229,7 +273,7 @@ namespace dbRad.Classes
         }
 
 
-        public static DataTable WinPopulateCombo(ComboBox cb, WindowMetaList windowMetaList, string colname, Dictionary<string, string> controlValues)
+        public static DataTable WinPopulateCombo(ComboBox cb, WindowMetaList windowMetaList)
         //Populates a combo box
         {
             NpgsqlCommand getColList = new NpgsqlCommand();
@@ -237,49 +281,55 @@ namespace dbRad.Classes
 
             DataTable comboDataTable = new DataTable();
 
-            string controlName;
-            string controlLabel;
-            string controlRowSource;
-            string controlFilter;
-            string controlOrderBy;
-            string controlType;
-            string controlEnabled;
-            string controlDefaultvalue;
-           
-            getColList.CommandText = ControlDatabaseSql.ColumnMetadataForColumn();
+            //string controlName;
+            //string controlLabel;
+            //string controlRowSource;
+            //string controlFilter;
+            //string controlOrderBy;
+            //string controlType;
+            //string controlEnabled;
+            //string controlDefaultvalue;
 
-            getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
-            getColList.Parameters.AddWithValue("@colname", colname);
-            getColList.CommandType = CommandType.Text;
-            getColList.Connection = windowMetaList.ControlDb;
+            //getColList.CommandText = ControlDatabaseSql.ColumnMetadataForColumn();
+
+            //getColList.Parameters.AddWithValue("@applicationTableId", windowMetaList.TableId);
+            //getColList.Parameters.AddWithValue("@colname", colname);
+            //getColList.CommandType = CommandType.Text;
+            //getColList.Connection = windowMetaList.ControlDb;
             try
             {
-                windowMetaList.ControlDb.Open();
+                //windowMetaList.ControlDb.Open();
+                //{
+                //    NpgsqlDataReader getColListReader = getColList.ExecuteReader();
+                //    getColListReader.Read();
+                //    controlName = getColListReader["column_name"].ToString();
+                //    controlLabel = getColListReader["column_label"].ToString();
+                //    controlRowSource = getColListReader["row_source"].ToString();
+                //    controlFilter = getColListReader["filter"].ToString();
+                //    controlOrderBy = getColListReader["order_by"].ToString();
+                //    controlType = getColListReader["window_control_type"].ToString();
+                //    controlEnabled = getColListReader["window_control_enabled"].ToString();
+                //    controlDefaultvalue = getColListReader["column_default_value"].ToString();
+                //}
+                //windowMetaList.ControlDb.Close();
+                foreach (var item in windowMetaList.Columns)
                 {
-                    NpgsqlDataReader getColListReader = getColList.ExecuteReader();
-                    getColListReader.Read();
-                    controlName = getColListReader["column_name"].ToString();
-                    controlLabel = getColListReader["column_label"].ToString();
-                    controlRowSource = getColListReader["row_source"].ToString();
-                    controlFilter = getColListReader["filter"].ToString();
-                    controlOrderBy = getColListReader["order_by"].ToString();
-                    controlType = getColListReader["window_control_type"].ToString();
-                    controlEnabled = getColListReader["window_control_enabled"].ToString();
-                    controlDefaultvalue = getColListReader["column_default_value"].ToString();
+                    if (item.ColumnName == cb.Name)
+                    {
+                        if (item.ColumnOrderBy == string.Empty)
+                            item.ColumnOrderBy = "\nORDER BY 1";
+                        else
+                            item.ColumnOrderBy = "\nORDER BY " + item.ColumnOrderBy;
+
+                        item.ColumnRowSource += item.ColumnRowSource;
+                        item.ColumnRowSource = WindowDataOps.SubstituteWindowParameters(item.ColumnRowSource, windowMetaList);
+
+                        getComboRows.CommandText = item.ColumnOrderBy;
+                        getComboRows.CommandType = CommandType.Text;
+                        getComboRows.Connection = windowMetaList.ApplicationDb;
+                        break;
+                    }
                 }
-                windowMetaList.ControlDb.Close();
-
-                if (controlOrderBy == string.Empty)
-                    controlOrderBy = "\nORDER BY 1";
-                else
-                    controlOrderBy = "\nORDER BY " + controlOrderBy;
-
-                controlRowSource += controlOrderBy;
-                controlRowSource = WindowDataOps.SubstituteWindowParameters(controlRowSource, controlValues);
-
-                getComboRows.CommandText = controlRowSource;
-                getComboRows.CommandType = CommandType.Text;
-                getComboRows.Connection = windowMetaList.ApplicationDb;
             }
             catch (Exception ex)
             {

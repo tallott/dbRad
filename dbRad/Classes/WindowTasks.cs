@@ -137,17 +137,126 @@ namespace dbRad.Classes
 
         }
 
-        public static void WinClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters, WindowMetaList windowMetaList, Dictionary<string, string> controlValues)
+
+        public static void WinSetControlValues(StackPanel editStkPnl, WindowMetaList windowMetaList, String action)
+        //Set control values to based on action
+        {
+
+            foreach (var item in windowMetaList.Columns)
+            {
+                switch (item.ColumnType)
+                {
+                    case "TEXT":
+                    case "TEXTBLOCK":
+                    case "ROWSOURCE":
+                    case "FILTER":
+                    case "ORDERBY":
+                    case "NUM":
+                        TextBox tb = (TextBox)editStkPnl.FindName(item.ColumnName);
+                        switch (action)
+                        {
+                            case "Clear":
+                            case "Delete":
+                                tb.Text = tb.Text.NullIfWhiteSpace() ?? item.ColumnDefaultValue;
+                                break;
+                            case "New":
+                                if (windowMetaList.TableFilter.Contains("~" + item.ColumnUiValue + "~"))
+                                {
+                                    tb.Text = item.ColumnUiValue;
+                                }
+                                else
+                                {
+                                    tb.Text = null;
+                                }
+                                break;
+                            case "Load":
+                                tb.Text = item.ColumnDbValue;
+                                break;
+                        }
+
+                        break;
+
+                    case "COMBO":
+                        ComboBox cb = (ComboBox)editStkPnl.FindName(item.ColumnName);
+                        switch (action)
+                        {
+                            case "Clear":
+                                cb.Text = cb.Text.NullIfWhiteSpace() ?? item.ColumnDefaultValue;
+                                break;
+                            case "New":
+                                if (windowMetaList.TableFilter.Contains("~" + item.ColumnUiValue + "~"))
+                                {
+                                    cb.Text = item.ColumnUiValue;
+                                }
+                                else
+                                {
+                                    cb.Text = null;
+                                }
+                                break;
+                            case "Load":
+                                cb.Text = item.ColumnDbValue;
+                                break;
+                        }
+
+                        break;
+
+                    case "DATE":
+                        DatePicker dtp = (DatePicker)editStkPnl.FindName(item.ColumnName);
+                        switch (action)
+                        {
+                            case "Clear":
+                            case "Delete":
+                                dtp.SelectedDate = dtp.SelectedDate ?? Convert.ToDateTime(item.ColumnDefaultValue);
+                                break;
+                            case "New":
+                                if (windowMetaList.TableFilter.Contains("~" + item.ColumnUiValue + "~"))
+                                {
+                                    dtp.SelectedDate = Convert.ToDateTime(item.ColumnUiValue);
+                                }
+                                break;
+                            case "Load":
+                                dtp.SelectedDate = Convert.ToDateTime(item.ColumnDbValue);
+                                break;
+                        }
+
+                        break;
+
+                    case "CHK":
+                        CheckBox chk = (CheckBox)editStkPnl.FindName(item.ColumnName);
+                        switch (action)
+                        {
+                            case "Clear":
+                            case "Delete":
+                                chk.IsChecked = Convert.ToBoolean(item.ColumnDefaultValue);
+                                break;
+                            case "New":
+                                if (windowMetaList.TableFilter.Contains("~" + item.ColumnUiValue + "~"))
+                                {
+                                    chk.IsChecked = Convert.ToBoolean(item.ColumnUiValue);
+                                }
+                                else
+                                {
+                                    chk.IsChecked = null;
+                                }
+                                break;
+                            case "Load":
+                                chk.IsChecked = Convert.ToBoolean(item.ColumnDbValue);
+                                break;
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        public static void WinClearDataFields(Window winNew, StackPanel editStkPnl, StackPanel fltStkPnl, bool keepFilters, WindowMetaList windowMetaList)
         //Clears the data edit fields
 
         {
             string filterList = windowMetaList.TableFilter;
-            //winNew.FindResource("winFilter").ToString();
-            //foreach (FrameworkElement element in editStkPnl.Children)
+
             foreach (var item in windowMetaList.Columns)
             {
-                //string ctlType = element.GetType().Name;
-                //switch (ctlType)
                 switch (item.ColumnType)
                 {
                     case "TEXT":
@@ -162,7 +271,7 @@ namespace dbRad.Classes
                             case true:
                                 if (filterList.Contains(tb.Name))
                                 {
-                                    tb.Text = item.ColumnValue;
+                                    tb.Text = item.ColumnUiValue;
                                 }
                                 else
                                 {
@@ -185,7 +294,7 @@ namespace dbRad.Classes
 
                                 if (filterList.ToLower().Contains(cb.Name))
                                 {
-                                    cb.SelectedValue = item.ColumnValue.NullIfWhiteSpace();
+                                    cb.SelectedValue = item.ColumnUiValue.NullIfWhiteSpace();
                                 }
                                 else
                                 {

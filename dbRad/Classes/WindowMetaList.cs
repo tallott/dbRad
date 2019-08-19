@@ -25,6 +25,7 @@ namespace dbRad.Classes
         private static NpgsqlConnection _applicationDb;
         private List<ColumMetadata> _columns = new List<ColumMetadata>();
 
+
         public string ApplicationName
         {
             get

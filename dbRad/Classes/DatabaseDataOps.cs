@@ -11,7 +11,7 @@ namespace dbRad.Classes
 {
     class DatabaseDataOps
     {
-        public static void DbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter, Dictionary<string, string> controlValues, TextBox tbOffset, TextBox tbSelectorText)
+        public static void DbGetDataGridRows(Window winNew, WindowMetaList windowMetaList, StackPanel editStkPnl, StackPanel fltStkPnl, DataGrid winDg, Int32 selectedFilter,  TextBox tbOffset, TextBox tbSelectorText)
         //Fills the form data grid with the filter applied
         {
             DataTable winDt = new DataTable();
@@ -34,7 +34,7 @@ namespace dbRad.Classes
             }
 
             //Set Filter 
-            windowMetaList.TableFilter = WindowDataOps.SubstituteWindowParameters(WindowDataOps.WinDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList), controlValues);
+            windowMetaList.TableFilter = WindowDataOps.SubstituteWindowParameters(WindowDataOps.WinDataGridGetBaseSql(sqlPart, sqlParam, windowMetaList),windowMetaList);
 
             sqlParam = windowMetaList.TableId;
 
@@ -210,90 +210,113 @@ namespace dbRad.Classes
             {
                 Int32 selectedRowIdVal = WindowTasks.DataGridGetId(winDg);
 
-                DataTable winSelectedRowDataTable = WindowDataOps.DbGetDataRow(windowMetaList, selectedRowIdVal, editStkPnl);
+                WindowDataOps.DbGetDataRow(windowMetaList, selectedRowIdVal);
 
                 Boolean isDirty = false;
 
-                foreach (DataRow row in winSelectedRowDataTable.Rows)
-                {
+                //foreach (DataRow row in winSelectedRowDataTable.Rows)
+                //{
                     sql = "UPDATE " + windowMetaList.SchemaName + "." + windowMetaList.TableName + " SET ";
-                    foreach (DataColumn col in winSelectedRowDataTable.Columns)
-                    {
+                //foreach (DataColumn col in winSelectedRowDataTable.Columns)
+                foreach (var item in windowMetaList.Columns)
+                {
 
                         //Build the SQL Statement to update changed values
 
                         //Determine the Type of control
-                        object obj = editStkPnl.FindName(col.ColumnName);
-                        string ctlName = obj.GetType().Name;
+                        //object obj = editStkPnl.FindName(col.ColumnName);
+                        //string ctlName = obj.GetType().Name;
                         //Use Type to work out how to process value;
-                        switch (ctlName)
-                        {
-                            case "TextBox":
-                                TextBox tb = (TextBox)editStkPnl.FindName(col.ColumnName);
+                        //switch (ctlName)
+                        switch (item.ColumnType)
+                    {
+                            //case "TextBox":
+                        case "TEXT":
+                        case "TEXTBLOCK":
+                        case "ROWSOURCE":
+                        case "FILTER":
+                        case "ORDERBY":
+                        case "NUM":
+                            //TextBox tb = (TextBox)editStkPnl.FindName(col.ColumnName);
 
-                                if (tb.Text.ToString() != row[col].ToString())
+                                //if (tb.Text.ToString() != row[col].ToString())
+                                if (item.ColumnUiValue !=item.ColumnDbValue)
                                 {
-                                    if (tb.Tag.ToString() != "NUM")
+                                    //if (tb.Tag.ToString() != "NUM")
+                                    if (item.ColumnType != "NUM")
                                     {
-                                        sql = sql + col.ColumnName + " = '" + tb.Text.Replace("'", "''") + "', ";
+                                        //sql = sql + col.ColumnName + " = '" + tb.Text.Replace("'", "''") + "', ";
+                                    sql = sql + item.ColumnName + " = '" + item.ColumnUiValue.Replace("'", "''") + "', ";
 
-                                    }
+                                }
                                     else
                                     {
-                                        if (row[col].ToString() == "")
+                                        //if (row[col].ToString() == "")
+                                        if (item.ColumnDbValue == "")
                                         {
-                                            tb.Text = "0";
+                                        item.ColumnDbValue = "0";
                                         }
-                                        sql = sql + col.ColumnName + " = " + tb.Text + ", ";
-                                    }
+                                       // sql = sql + col.ColumnName + " = " + tb.Text + ", ";
+                                    sql = sql + item.ColumnName + " = " + item.ColumnUiValue + ", ";
+                                }
                                     isDirty = true;
                                 }
                                 break;
 
                             case "ComboBox":
 
-                                ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
-                                if (cb.SelectedValue != null)
+                                //ComboBox cb = (ComboBox)editStkPnl.FindName(col.ColumnName);
+                                //if (cb.SelectedValue != null)
+                                if (item.ColumnUiValue != null)
                                 {
-                                    if (cb.SelectedValue.ToString() != row[col].ToString())
+                                    //if (cb.SelectedValue.ToString() != row[col].ToString())
+                                    if (item.ColumnUiValue != item.ColumnDbValue)
                                     {
-                                        sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
-                                        isDirty = true;
+                                    //sql = sql + col.ColumnName + " = " + cb.SelectedValue + ", ";
+                                    sql = sql + item.ColumnName + " = " + item.ColumnUiValue + ", ";
+                                    isDirty = true;
                                     }
                                 }
                                 break;
 
                             case "DatePicker":
-                                DatePicker dtp = (DatePicker)editStkPnl.FindName(col.ColumnName);
-                                if (row[col].ToString() != "" && dtp.SelectedDate != null)
+                                //DatePicker dtp = (DatePicker)editStkPnl.FindName(col.ColumnName);
+                                //if (row[col].ToString() != "" && dtp.SelectedDate != null)
+                                if (item.ColumnDbValue != "" && item.ColumnUiValue != null)
 
                                 {
-                                    if (Convert.ToDateTime(dtp.SelectedDate) != Convert.ToDateTime(row[col]))
+                                    //if (Convert.ToDateTime(dtp.SelectedDate) != Convert.ToDateTime(row[col]))
+                                    if (Convert.ToDateTime(item.ColumnUiValue) != Convert.ToDateTime(item.ColumnDbValue))
                                     {
-                                        sql = sql + col.ColumnName + " = '" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "', ";
-                                        isDirty = true;
+                                    //sql = sql + col.ColumnName + " = '" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "', ";
+                                    sql = sql + item.ColumnName + " = '" + Convert.ToDateTime(item.ColumnUiValue).ToString("yyyy-MM-dd") + "', ";
+                                    isDirty = true;
                                     }
                                 }
-                                else if (row[col].ToString() == "" && dtp.SelectedDate != null)
-                                {
-                                    sql = sql + col.ColumnName + " = '" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "', ";
-                                    isDirty = true;
+                                //else if (row[col].ToString() == "" && dtp.SelectedDate != null)
+                                else if (item.ColumnDbValue == "" && item.ColumnUiValue != null)
+                                    {
+                                //sql = sql + col.ColumnName + " = '" + Convert.ToDateTime(dtp.SelectedDate).ToString("yyyy-MM-dd") + "', ";
+                                sql = sql + item.ColumnName + " = '" + Convert.ToDateTime(item.ColumnUiValue).ToString("yyyy-MM-dd") + "', ";
+                                isDirty = true;
                                 }
                                     ;
                                 break;
 
                             case "CheckBox":
-                                CheckBox chk = (CheckBox)editStkPnl.FindName(col.ColumnName);
-                                if (Convert.ToBoolean(chk.IsChecked) != Convert.ToBoolean(row[col]))
+                                //CheckBox chk = (CheckBox)editStkPnl.FindName(col.ColumnName);
+                                //if (Convert.ToBoolean(chk.IsChecked) != Convert.ToBoolean(row[col]))
+                                if (Convert.ToBoolean(item.ColumnUiValue) != Convert.ToBoolean(item.ColumnDbValue))
                                 {
-                                    sql = sql + col.ColumnName + " = " + Convert.ToBoolean(chk.IsChecked) + ", ";
-                                    isDirty = true;
+                                    //sql = sql + col.ColumnName + " = " + Convert.ToBoolean(chk.IsChecked) + ", ";
+                                sql = sql + item.ColumnName + " = " + Convert.ToBoolean(item.ColumnUiValue) + ", ";
+                                isDirty = true;
                                 }
                                     ;
                                 break;
                         };
 
-                    }
+                    //}
                     if (isDirty)
                     { //Update the selected record in database
 

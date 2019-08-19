@@ -13,7 +13,8 @@ namespace dbRad.Classes
         string _columnDefaultValue = string.Empty;
         string _columnRequiredValue = string.Empty;
         string _columnDescription = string.Empty;
-        string _columnValue = string.Empty;
+        string _columnUiValue = string.Empty;
+        string _columnDbValue = string.Empty;
 
 
         public string ColumnName
@@ -136,30 +137,27 @@ namespace dbRad.Classes
                 _columnDescription = value;
             }
         }
-        public string ColumnValue
+        public string ColumnUiValue
         {
             get
             {
-                return _columnValue;
+                return _columnUiValue;
             }
             set
             {
-                _columnValue = value;
+                _columnUiValue = value;
             }
         }
-        public static string GetColumValue(WindowMetaList windowMetaList, string columnName)
+        public string ColumnDbValue
         {
-            string columnValue = string.Empty;
-            foreach (var columns in windowMetaList.Columns)
+            get
             {
-                if (columns.ColumnName == columnName)
-                {
-                    columnValue = columns.ColumnValue;
-                    break;
-                }
-
+                return _columnDbValue;
             }
-            return columnValue;
+            set
+            {
+                _columnDbValue = value;
+            }
         }
     }
 }

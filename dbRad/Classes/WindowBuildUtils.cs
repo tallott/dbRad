@@ -276,7 +276,7 @@ namespace dbRad.Classes
                         ColumnDefaultValue = getColListReader["column_default_value"].ToString(),
                         ColumnRequiredValue = getColListReader["column_required_value"].ToString(),
                         ColumnDescription = getColListReader["column_description"].ToString(),
-                        ColumnValue = String.Empty
+                        ColumnUiValue = String.Empty
                     };
 
                     columns.Add(column);

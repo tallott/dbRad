@@ -313,14 +313,14 @@ namespace dbRad
             TextBox tbWinMode = WindowBuildUtils.CreateTextBox("tbWinMode", string.Empty, "winMessageTextBoxStyle", Visibility.Collapsed);
 
             //Create and Add controls to the window editing area Stack panel based on underlying database columns
-            foreach(var columns in windowMetaList.Columns)
+            foreach(var item in windowMetaList.Columns)
             {
-                controlValues.Add(columns.ColumnName, null);
-                string toolTip = columns.ColumnLabel + "\r\n\n" + "Required = " + columns.ColumnRequiredValue + "\r\n\n" + columns.ColumnDescription;
+                controlValues.Add(item.ColumnName, null);
+                string toolTip = item.ColumnLabel + "\r\n\n" + "Required = " + item.ColumnRequiredValue + "\r\n\n" + item.ColumnDescription;
 
-                if (columns.ColumnType != "ID")
+                if (item.ColumnType != "ID")
                 {
-                    switch (columns.ColumnRequiredValue)
+                    switch (item.ColumnRequiredValue)
                     {
                         case "True":
                             controlStyle = "winLabelRequiredStyle";
@@ -330,26 +330,26 @@ namespace dbRad
                             break;
                     }
 
-                    Label lbl = WindowBuildUtils.CreateLabel(columns.ColumnLabel, controlStyle);
+                    Label lbl = WindowBuildUtils.CreateLabel(item.ColumnLabel, controlStyle);
 
                     editStkPnl.Children.Add(lbl);
                 }
 
-                switch (columns.ColumnType)
+                switch (item.ColumnType)
                 {
 
                     case "ID":
-                        TextBox rowKey = WindowBuildUtils.CreateTextBox(columns.ColumnName, "winTextBoxStyle", columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        TextBox rowKey = WindowBuildUtils.CreateTextBox(item.ColumnName, "winTextBoxStyle", item.ColumnEnabled, item.ColumnType, toolTip);
                         rowKey.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(rowKey, controlValues);
+                            WindowDataOps.WinGetControlValue(rowKey, windowMetaList);
                         });
                         editStkPnl.Children.Add(rowKey);
                         editStkPnl.RegisterName(rowKey.Name, rowKey);
                         break;
 
                     case "TEXT":
-                        switch (columns.ColumnRequiredValue)
+                        switch (item.ColumnRequiredValue)
                         {
                             case "True":
                                 controlStyle = "winTextBoxRequiredStyle";
@@ -358,11 +358,11 @@ namespace dbRad
                                 controlStyle = "winTextBoxStyle";
                                 break;
                         }
-                        TextBox tb = WindowBuildUtils.CreateTextBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        TextBox tb = WindowBuildUtils.CreateTextBox(item.ColumnName, controlStyle, item.ColumnEnabled, item.ColumnType, toolTip);
 
                         tb.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(tb, controlValues);
+                            WindowDataOps.WinGetControlValue(tb, windowMetaList);
                         });
                         editStkPnl.Children.Add(tb);
                         editStkPnl.RegisterName(tb.Name, tb);
@@ -372,7 +372,7 @@ namespace dbRad
                     case "ROWSOURCE":
                     case "FILTER":
                     case "ORDERBY":
-                        switch (columns.ColumnRequiredValue)
+                        switch (item.ColumnRequiredValue)
                         {
                             case "True":
                                 controlStyle = "winTextBlockRequiredStyle";
@@ -381,11 +381,11 @@ namespace dbRad
                                 controlStyle = "winTextBlockStyle";
                                 break;
                         }
-                        TextBox tbk = WindowBuildUtils.CreateTextBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        TextBox tbk = WindowBuildUtils.CreateTextBox(item.ColumnName, controlStyle, item.ColumnEnabled, item.ColumnType, toolTip);
 
                         tbk.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(tbk, controlValues);
+                            WindowDataOps.WinGetControlValue(tbk, windowMetaList);
                         });
                         editStkPnl.Children.Add(tbk);
                         editStkPnl.RegisterName(tbk.Name, tbk);
@@ -393,12 +393,12 @@ namespace dbRad
 
                     case "NUM":
                         controlStyle = "winNumBoxStyle";
-                        TextBox nb = WindowBuildUtils.CreateTextBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        TextBox nb = WindowBuildUtils.CreateTextBox(item.ColumnName, controlStyle, item.ColumnEnabled, item.ColumnType, toolTip);
 
                         nb.PreviewTextInput += ApplicationUtils.NumberValidationTextBox;
                         nb.TextChanged += new TextChangedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(nb, controlValues);
+                            WindowDataOps.WinGetControlValue(nb, windowMetaList);
                         });
 
                         editStkPnl.Children.Add(nb);
@@ -408,19 +408,19 @@ namespace dbRad
 
                     case "CHK":
                         controlStyle = "winCheckBoxStyle";
-                        CheckBox chk = WindowBuildUtils.CreateCheckBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        CheckBox chk = WindowBuildUtils.CreateCheckBox(item.ColumnName, controlStyle, item.ColumnEnabled, item.ColumnType, toolTip);
 
                         chk.Checked += new RoutedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(chk, controlValues);
+                            WindowDataOps.WinGetControlValue(chk, windowMetaList);
                         });
                         chk.Unchecked += new RoutedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(chk, controlValues);
+                            WindowDataOps.WinGetControlValue(chk, windowMetaList);
                         });
                         chk.Indeterminate += new RoutedEventHandler((s, e) =>
                         {
-                            WindowDataOps.WinGetControlValue(chk, controlValues);
+                            WindowDataOps.WinGetControlValue(chk, windowMetaList);
                         });
                         editStkPnl.Children.Add(chk);
                         editStkPnl.RegisterName(chk.Name, chk);
@@ -428,7 +428,7 @@ namespace dbRad
 
                     case "DATE":
                         controlStyle = "winDatePickerStyle";
-                        DatePicker dtp = WindowBuildUtils.CreateDatePicker(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        DatePicker dtp = WindowBuildUtils.CreateDatePicker(item.ColumnName, controlStyle, item.ColumnEnabled, item.ColumnType, toolTip);
 
                         editStkPnl.Children.Add(dtp);
                         editStkPnl.RegisterName(dtp.Name, dtp);
@@ -437,16 +437,16 @@ namespace dbRad
 
                     case "COMBO":
                         controlStyle = "winComboBoxStyle";
-                        ComboBox cb = WindowBuildUtils.CreateComboBox(columns.ColumnName, controlStyle, columns.ColumnEnabled, columns.ColumnType, toolTip);
+                        ComboBox cb = WindowBuildUtils.CreateComboBox(item.ColumnName, controlStyle, item.ColumnEnabled, item.ColumnType, toolTip);
 
                         cb.DropDownClosed += new EventHandler((s, e) =>
                         {
                             if (cb.SelectedValue != null)
                             {
-                                WindowDataOps.WinGetControlValue(cb, controlValues);
+                                WindowDataOps.WinGetControlValue(cb, windowMetaList);
                                 if (windowMetaList.WinMode != "EDIT")
                                 {
-                                    DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                                    DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
                                 }
                             }
                             else
@@ -459,24 +459,24 @@ namespace dbRad
                         {
                             displayMember = cb.Text;
                             DataTable comboDataTable = new DataTable();
-                            comboDataTable = WindowDataOps.WinPopulateCombo(cb, windowMetaList, cb.Name, controlValues);
+                            comboDataTable = WindowDataOps.WinPopulateCombo(cb, windowMetaList);
                             cb.ItemsSource = comboDataTable.DefaultView;
                             cb.DisplayMemberPath = comboDataTable.Columns["display_member"].ToString();
                             cb.SelectedValuePath = comboDataTable.Columns["value_member"].ToString();
                         });
                         //Populate Combo
 
-                        if (columns.ColumnOrderBy == string.Empty)
-                            columns.ColumnOrderBy = "\nORDER BY 1";
+                        if (item.ColumnOrderBy == string.Empty)
+                            item.ColumnOrderBy = "\nORDER BY 1";
                         else
-                            columns.ColumnOrderBy = "\nORDER BY " + columns.ColumnOrderBy;
+                            item.ColumnOrderBy = "\nORDER BY " + item.ColumnOrderBy;
 
-                        columns.ColumnRowSource += columns.ColumnOrderBy;
-                        columns.ColumnRowSource = WindowDataOps.SubstituteWindowParameters(columns.ColumnRowSource, controlValues);
+                        item.ColumnRowSource += item.ColumnOrderBy;
+                        item.ColumnRowSource = WindowDataOps.SubstituteWindowParameters(item.ColumnRowSource, windowMetaList);
 
                         NpgsqlCommand getComboRows = new NpgsqlCommand();
                         Int32 selectedRowIdVal = WindowTasks.DataGridGetId(windowDataGrid);
-                        getComboRows.CommandText = columns.ColumnRowSource;
+                        getComboRows.CommandText = item.ColumnRowSource;
                         getComboRows.CommandType = CommandType.Text;
                         getComboRows.Connection = windowMetaList.ApplicationDb;
 
@@ -509,7 +509,7 @@ namespace dbRad
                 if (windowDataGrid.SelectedItem == null) return;
                 windowMetaList.GridSelectedIndex = windowDataGrid.SelectedIndex;
                 WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, 0, editStkPnl, controlValues);
+                WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, 0, editStkPnl);
             });
             
             //Filter Selector
@@ -519,8 +519,8 @@ namespace dbRad
                 selectedFilter = (Int32)clicked.SelectedValue;
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch, windowMetaList);
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
-                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
+                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList);
                 WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
             }
             );
@@ -533,10 +533,10 @@ namespace dbRad
                     case "NEW":
                         if (DatabaseDataOps.DbCreateRecord(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbFetch, tbSelectorText) == true)
                         {
-                            WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
+                            WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList);
                             WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
                             WindowTasks.WinSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
 
                         }
                         break;
@@ -546,9 +546,9 @@ namespace dbRad
                         if (DatabaseDataOps.DbUpdateRecord(windowMetaList, windowDataGrid, editStkPnl) == true)
                         {
                             WindowTasks.WinSetMode("EDIT", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
                             WindowTasks.WinDataGridSelectRow(selectedDataGridRowIdVal, windowDataGrid, windowMetaList);
-                            WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, selectedDataGridRowIdVal, editStkPnl, controlValues);
+                            WindowDataOps.WinDataGridClicked(windowMetaList, windowDataGrid, selectedDataGridRowIdVal, editStkPnl);
                         }
                         break;
                 }
@@ -558,15 +558,15 @@ namespace dbRad
             {
                 windowDataGrid.SelectedItem = null;
                 WindowTasks.WinSetMode("NEW", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
+                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList);
                 WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
             });
             btnDelete.Click += new RoutedEventHandler((s, e) =>
             {
                 DatabaseDataOps.DbDeleteRecord(windowMetaList, windowDataGrid);
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
-                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
+                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList);
                 WindowTasks.WinSetControlDefaultValues(editStkPnl, windowMetaList);
             });
             btnExit.Click += new RoutedEventHandler(WindowTasks.WinClose);
@@ -574,22 +574,22 @@ namespace dbRad
             {
                 selectedFilter = 0;
                 winFlt.SelectedIndex = selectedFilter;
-                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, false, windowMetaList, controlValues);
+                WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, false, windowMetaList);
                 WindowTasks.WinResetRecordSelector(tbSelectorText, tbOffset, tbFetch, windowMetaList);
                 WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
                 WindowDataOps.WinClearControlDictionaryValues(controlValues);
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
 
             });
             tbOffset.TextChanged += new TextChangedEventHandler((s, e) =>
             {
-                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, controlValues, tbOffset, tbSelectorText);
+                DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, selectedFilter, tbOffset, tbSelectorText);
             });
 
             btnNextPage.Click += new RoutedEventHandler((s, e) =>
               {
                   tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) + Convert.ToInt32(tbFetch.Text));
-                  WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
+                  WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList);
               });
 
             btnPrevPage.Click += new RoutedEventHandler((s, e) =>
@@ -597,7 +597,7 @@ namespace dbRad
                 if (Convert.ToInt32(tbOffset.Text) >= Convert.ToInt32(tbFetch.Text))
                 {
                     tbOffset.Text = Convert.ToString(Convert.ToInt32(tbOffset.Text) - Convert.ToInt32(tbFetch.Text));
-                    WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList, controlValues);
+                    WindowTasks.WinClearDataFields(winNew, editStkPnl, fltStkPnl, true, windowMetaList);
                 }
             });
 
@@ -665,7 +665,7 @@ namespace dbRad
             //Prepare the form with data and set mode
 
             winFlt.SelectedIndex = 0;
-            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, 0, controlValues, tbOffset, tbSelectorText);
+            DatabaseDataOps.DbGetDataGridRows(winNew, windowMetaList, editStkPnl, fltStkPnl, windowDataGrid, 0, tbOffset, tbSelectorText);
             WindowTasks.WinSetMode("CLEAR", winNew, btnSave, btnNew, btnDelete, btnExit, btnClear, windowMetaList, tbWinMode);
             winNew.Show();
                         
